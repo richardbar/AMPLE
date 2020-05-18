@@ -15,4 +15,5 @@ public:
 private:
     std::string _message;
 };
+
 #endif//__AMPLE_DLLNOTFOUNDEXCEPTION_H__

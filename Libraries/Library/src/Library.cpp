@@ -2,9 +2,26 @@
 #include "DllNotFoundException.h"
 #include "MissingMethodException.h"
 
-#if defined(__linux__)
+#if defined(_WIN32) || defined(WIN32)
+    #include <Shlobj.h>
+#elif defined(__linux__)
     #include <dlfcn.h>
+    #include <pwd.h>
+    #include <sys/types.h>
+    #include <unistd.h>
 #endif
+
+const char* GetHomeDir()
+{
+#if defined(_WIN32) || defined(WIN32)
+    const char* path[MAX_PATH + 1];
+    return (SHGetSpecialFolderPathA(HWND_DESKTOP, path, CSIDL_DESKTOPDIRECTORY, FALSE)) ? path : nullptr;
+#elif defined(__linux__)
+    struct passwd* pw = getpwuid(getuid());
+    return pw->pw_dir;
+#endif
+}
+
 
 bool Library::InstallLibraries(std::vector<std::string>& libraries)
 {
@@ -26,7 +43,11 @@ bool Library::InstallLibrary(std::string& library)
 
 Library::Library(std::string& Library)
 {
-    LoadLib(Library);
+#if defined(_WIN32) || defined(WIN32)
+    LoadLib(std::string(GetHomeDir()).append(".ample\\libs\\").append(Library).append(".dll"));
+#elif defined(__linux__)
+    LoadLib(std::string(GetHomeDir()).append("/.ample/libs/").append(Library).append(".so"));
+#endif
 }
 
 void* Library::GetFunction(std::string& Function)

@@ -1,6 +1,8 @@
 #include "Program.h"
 #include "DllNotFoundException.h"
+#include "IndexOutOfRangeException.h"
 #include "Library.h"
+#include "Memory.h"
 #include "Metadata.h"
 #include "MissingMethodException.h"
 

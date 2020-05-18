@@ -1,4 +1,4 @@
-#include "../include/DllNotFoundException.h"
+#include "DllNotFoundException.h"
 
 DllNotFoundException::DllNotFoundException(const char* message)
 {

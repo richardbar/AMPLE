@@ -35,6 +35,7 @@ void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, v
                 break;
             line += c;
         }
+        if (c == -1) break;
 
         if (line == std::string("--End of Metadata--"))
             break;

@@ -1,4 +1,4 @@
-#include "../include/MissingMethodException.h"
+#include "MissingMethodException.h"
 
 MissingMethodException::MissingMethodException(const char *message)
 {
