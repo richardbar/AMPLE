@@ -14,8 +14,12 @@
 const char* GetHomeDir()
 {
 #if defined(_WIN32) || defined(WIN32)
-    const char* path[MAX_PATH + 1];
-    return (SHGetSpecialFolderPathA(HWND_DESKTOP, path, CSIDL_DESKTOPDIRECTORY, FALSE)) ? path : nullptr;
+    char* returny;
+    size_t reqSize;
+    getenv_s(&reqSize, NULL, 0, "USERPROFILE");
+    returny = (char*)malloc(reqSize * sizeof(char));
+    getenv_s(&reqSize, returny, reqSize, "USERPROFILE");
+    return returny;
 #elif defined(__linux__)
     struct passwd* pw = getpwuid(getuid());
     return pw->pw_dir;
@@ -44,7 +48,7 @@ bool Library::InstallLibrary(std::string& library)
 Library::Library(std::string& Library)
 {
 #if defined(_WIN32) || defined(WIN32)
-    LoadLib(std::string(GetHomeDir()).append(".ample\\libs\\").append(Library).append(".dll"));
+    LoadLib(std::string(GetHomeDir()).append("\\.ample\\libs\\").append(Library).append(".dll"));
 #elif defined(__linux__)
     LoadLib(std::string(GetHomeDir()).append("/.ample/libs/").append(Library).append(".so"));
 #endif

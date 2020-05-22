@@ -7,7 +7,17 @@
 #include "MissingMethodException.h"
 
 #include <cstdio>
-#include <filesystem>
+
+bool FileExists(std::string& file)
+{
+    FILE* fptr = fopen(file.c_str(), "r");
+    if (fptr)
+    {
+        fclose(fptr);
+        return true;
+    }
+    return false;
+}
 
 void Program::Main(std::vector<std::string>& args)
 {
@@ -33,7 +43,7 @@ void Program::Main(std::vector<std::string>& args)
 
     for (auto& fileName : args)
     {
-        if (!std::filesystem::exists(fileName))
+        if (!FileExists(fileName))
         {
             fprintf(stderr, "File: \"%s\" does not exist.\n", fileName.c_str());
             exit(-1);
@@ -46,8 +56,27 @@ void Program::Main(std::vector<std::string>& args)
 
         FILE* fptr = fopen(fileName.c_str(), "r");
 
-        auto Libraries = std::map<int, std::pair<Library*, std::map<int, void*>>>();
-        LoadMetaData(fptr, Libraries);
+        try {
+            auto Libraries = std::map<int, std::pair<Library*, std::map<int, void*>>>();
+            LoadMetaData(fptr, Libraries);
+
+            Memory::InitializeMemory(sizeof(int64_t), 1024);
+
+            Memory::FreeMemory();
+        }
+        catch (MissingMethodException& e)
+        {
+            printf("%s\n", e.what());
+        }
+        catch (DllNotFoundException& e)
+        {
+            printf("%s\n", e.what());
+        }
+        catch (IndexOutOfRangeException& e)
+        {
+            printf("%s\n", e.what());
+        }
+
 
         fclose(fptr);
     }
