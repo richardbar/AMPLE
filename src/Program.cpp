@@ -1,27 +1,17 @@
 #include "Program.h"
+
 #include "DllNotFoundException.h"
-#include "IndexOutOfRangeException.h"
+#include "File.h"
 #include "Library.h"
 #include "Memory.h"
 #include "Metadata.h"
-#include "MissingMethodException.h"
 
 #include <cstdio>
-
-bool FileExists(std::string& file)
-{
-    FILE* fptr = fopen(file.c_str(), "r");
-    if (fptr)
-    {
-        fclose(fptr);
-        return true;
-    }
-    return false;
-}
+#include <exception>
+#include <map>
 
 void Program::Main(std::vector<std::string>& args)
 {
-
     if (args.empty())
     {
         fprintf(stderr, "You need to specify program files to run.\n");
@@ -43,36 +33,42 @@ void Program::Main(std::vector<std::string>& args)
 
     for (auto& fileName : args)
     {
-        if (!FileExists(fileName))
+        FILE* fptr = File::Open(fileName, FileMode::Read);
+        if (!fptr)
         {
             fprintf(stderr, "File: \"%s\" does not exist.\n", fileName.c_str());
             exit(-1);
         }
         if ((fileName.find_last_of('.') != std::string::npos) ? fileName.substr(fileName.find_last_of('.') + 1) != std::string("ample"): true)
         {
+            fclose(fptr);
             fprintf(stderr, "File: \"%s\" is not an AMPLE Executable File\n", fileName.c_str());
             exit(-1);
         }
 
-        FILE* fptr = fopen(fileName.c_str(), "r");
-
         try {
-            auto Libraries = std::map<int, std::pair<Library*, std::map<int, void*>>>();
-            LoadMetaData(fptr, Libraries);
+            auto Libraries = new std::map<int, std::pair<Library*, std::map<int, void*>>>();
+            auto Variables = new std::map<std::string, std::string>();
+            LoadMetaData(fptr, *Libraries, *Variables);
 
-            Memory::InitializeMemory(sizeof(int64_t), 1024);
+            int memorySize = 1024;
+            if (Variables->find("Memory") != Variables->end())
+            {
+                try {
+                    memorySize = std::stoi((*Variables)["Memory"]);
+                    printf("Setting memory to %d\n", std::stoi((*Variables)["Memory"]));
+                }
+                catch (...) { }
+            }
+            Memory::InitializeMemory(sizeof(int64_t), memorySize);
+
+
 
             Memory::FreeMemory();
+            delete Libraries;
+            delete Variables;
         }
-        catch (MissingMethodException& e)
-        {
-            printf("%s\n", e.what());
-        }
-        catch (DllNotFoundException& e)
-        {
-            printf("%s\n", e.what());
-        }
-        catch (IndexOutOfRangeException& e)
+        catch (std::exception& e)
         {
             printf("%s\n", e.what());
         }

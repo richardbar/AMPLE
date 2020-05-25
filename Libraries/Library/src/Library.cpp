@@ -1,10 +1,13 @@
+#include "AMPLE.h"
+
 #include "Library.h"
 #include "DllNotFoundException.h"
 #include "MissingMethodException.h"
 
-#if defined(_WIN32) || defined(WIN32)
+#if defined(__WINDOWS__)
     #include <Shlobj.h>
-#elif defined(__linux__)
+    #include <Windows.h>
+#elif defined(__LINUX__) || defined(__APPLE__)
     #include <dlfcn.h>
     #include <pwd.h>
     #include <sys/types.h>
@@ -13,14 +16,14 @@
 
 const char* GetHomeDir()
 {
-#if defined(_WIN32) || defined(WIN32)
+#if defined(__WINDOWS__)
     char* returny;
     size_t reqSize;
     getenv_s(&reqSize, NULL, 0, "USERPROFILE");
     returny = (char*)malloc(reqSize * sizeof(char));
     getenv_s(&reqSize, returny, reqSize, "USERPROFILE");
     return returny;
-#elif defined(__linux__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     struct passwd* pw = getpwuid(getuid());
     return pw->pw_dir;
 #endif
@@ -47,9 +50,9 @@ bool Library::InstallLibrary(std::string& library)
 
 Library::Library(std::string& Library)
 {
-#if defined(_WIN32) || defined(WIN32)
-    LoadLib(std::string(GetHomeDir()).append("\\.ample\\libs\\").append(Library).append(".dll"));
-#elif defined(__linux__)
+#if defined(__WINDOWS__)
+    LoadLib(std::string(GetHomeDir()).append(R"(\.ample\libs\)").append(Library).append(".dll"));
+#elif defined(__LINUX__) || defined(__APPLE__)
     LoadLib(std::string(GetHomeDir()).append("/.ample/libs/").append(Library).append(".so"));
 #endif
 }
@@ -58,9 +61,9 @@ void* Library::GetFunction(std::string& Function)
 {
     void* FPointer;
     if (LibraryInstance)
-#if defined(_WIN32) || defined(WIN32)
-        FPointer = (void*)GetProcAddress(LibraryInstance, Function.c_str());
-#elif defined(__linux__)
+#if defined(__WINDOWS__)
+        FPointer = (void*)GetProcAddress((HINSTANCE)LibraryInstance, Function.c_str());
+#elif defined(__LINUX__) || defined(__APPLE__)
         FPointer = dlsym(LibraryInstance, Function.c_str());
 #endif
     else
@@ -73,23 +76,36 @@ void* Library::GetFunction(std::string& Function)
 Library::~Library()
 {
     if (LibraryInstance)
-#if defined(_WIN32) || defined(WIN32)
-        FreeLibrary(LibraryInstance);
-#elif defined(__linux__)
+#if defined(__WINDOWS__)
+        FreeLibrary((HINSTANCE)LibraryInstance);
+#elif defined(__LINUX__) || defined(__APPLE__)
         dlclose(LibraryInstance);
 #endif
 }
 
 bool Library::LibraryIsInstalled(std::string& library)
 {
+    FILE* fptr;
+#if defined(__WINDOWS__)
+    std::string libPath = std::string(GetHomeDir()).append(R"(\.ample\libs\)").append(library).append(".dll");
+    fopen_s(&fptr, libPath.c_str(), "r");
+#elif defined(__LINUX__) || defined(__APPLE__)
+    std::string libPath = std::string(GetHomeDir()).append("/.ample/libs/").append(library).append(".so");
+    fptr = fopen(libPath.c_str(), "r");
+#endif
+    if (fptr)
+    {
+        fclose(fptr);
+        return true;
+    }
     return false;
 }
 
 void Library::LoadLib(std::string& Library)
 {
-#if defined(_WIN32) || defined(WIN32)
+#if defined(__WINDOWS__)
     LibraryInstance = LoadLibrary(TEXT(Library.c_str()));
-#elif defined(__linux__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     LibraryInstance = (void*)dlopen(Library.c_str(), RTLD_LAZY);
 #endif
     if (!LibraryInstance)

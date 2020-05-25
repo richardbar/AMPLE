@@ -1,4 +1,4 @@
 #include "main.h"
 #include "Program.h"
 
-HANDLED_MAIN(Program);
+HANDLED_MAIN(Program)

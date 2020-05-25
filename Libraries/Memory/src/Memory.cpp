@@ -7,7 +7,7 @@ void* memory = nullptr;
 uint8_t posSize = 0;
 size_t size = 0;
 
-bool Memory::InitializeMemory(uint8_t ssize, uint64_t nsize)
+bool Memory::InitializeMemory(uint8_t ssize, size_t nsize)
 {
     posSize = ssize;
     size = nsize;
@@ -16,7 +16,7 @@ bool Memory::InitializeMemory(uint8_t ssize, uint64_t nsize)
     return memory != nullptr;
 }
 
-bool Memory::ResizeMemory(uint64_t nsize)
+bool Memory::ResizeMemory(size_t nsize)
 {
     size = nsize;
 

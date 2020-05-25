@@ -7,6 +7,6 @@
 #include <string>
 #include <vector>
 
-void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, void*>>>& libs);
+void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, void*>>>& libs, std::map<std::string, std::string>& settings);
 
 #endif//__AMPLE_METADATA_H__

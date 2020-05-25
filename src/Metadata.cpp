@@ -16,24 +16,18 @@ std::vector<std::string> split(const std::string& str, const std::string& delim)
     return tokens;
 }
 
-/**
- *
- * @param fptr File Pointer to read from
- * @param libs A Map that pairs an int assigned to an Library and a
- * Map that pairs each Library's functions to a function Pointer
- */
-void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, void*>>>& libs)
+void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, void*>>>& libs, std::map<std::string, std::string>& settings)
 {
     std::string line;
     std::map<std::string, int> libraryNames = std::map<std::string, int>();
     while (true)
     {
-        char c;
+        int c;
         while ((c = fgetc(fptr)) != -1)
         {
             if (c == '\n')
                 break;
-            line += c;
+            line += (char)c;
         }
         if (c == -1) break;
 
@@ -41,11 +35,16 @@ void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, v
             break;
 
         auto lineSpaces = split(line, std::string(" "));
-        if (lineSpaces.size() < 4) { }
-            //error
+        if (lineSpaces.empty()) { continue; }
 
-        if (lineSpaces[0] == std::string("using") && lineSpaces[1] == std::string("as"))
+        if (lineSpaces[0] == std::string("set") && lineSpaces[2] == std::string("as"))
         {
+            if (lineSpaces.size() != 4) { continue; }
+            settings[lineSpaces[1]] = lineSpaces[3];
+        }
+        else if (lineSpaces[0] == std::string("using") && lineSpaces[1] == std::string("as"))
+        {
+            if (lineSpaces.size() != 4) { continue; }
             int pos = std::stoi(lineSpaces[2]);
             std::pair<Library*, std::map<int, void*>> val = std::pair<Library*, std::map<int, void*>>();
             std::string libf = std::string(lineSpaces[3]);
@@ -57,6 +56,7 @@ void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, v
         }
         else if (lineSpaces[0] == std::string("implement") && lineSpaces[1] == std::string("as"))
         {
+            if (lineSpaces.size() != 4) { continue; }
             auto funcCore = split(lineSpaces[3], std::string("::"));
             auto fname = funcCore[1];
             int lpos = libraryNames[funcCore[0]];

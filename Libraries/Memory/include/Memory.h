@@ -18,8 +18,8 @@
 class Memory
 {
 public:
-    EXPORT static bool InitializeMemory(uint8_t ssize, uint64_t nsize);
-    EXPORT static bool ResizeMemory(uint64_t nsize);
+    EXPORT static bool InitializeMemory(uint8_t ssize, size_t nsize);
+    EXPORT static bool ResizeMemory(size_t nsize);
     EXPORT static void FreeMemory();
     EXPORT static void* Get(uint64_t pos);
 };
