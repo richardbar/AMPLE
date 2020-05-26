@@ -10,16 +10,17 @@ else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
+get_filename_component(PARENT_DIR ../ ABSOLUTE)
 
-add_subdirectory(Libraries/Library)
-add_subdirectory(Libraries/Exceptions)
-add_subdirectory(Libraries/IO)
-add_subdirectory(Libraries/Memory)
+add_subdirectory(${PARENT_DIR}/Libraries/Exceptions Exceptions)
+add_subdirectory(${PARENT_DIR}/Libraries/Library Library)
+add_subdirectory(${PARENT_DIR}/Libraries/IO IO)
+add_subdirectory(${PARENT_DIR}/Libraries/Memory Memory)
 
 include_directories(include)
-include_directories(Libraries/AMPLE/include)
+include_directories(${PARENT_DIR}/Libraries/AMPLE/include)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/Program.cpp src/Metadata.cpp Libraries/IO/src/File.cpp Libraries/IO/include/File.h)
+add_executable(${PROJECT_NAME} src/main.cpp src/Program.cpp src/Metadata.cpp)
 target_link_libraries(${PROJECT_NAME} AMPLE::Library)
 target_link_libraries(${PROJECT_NAME} AMPLE::Exceptions)
 target_link_libraries(${PROJECT_NAME} AMPLE::IO)

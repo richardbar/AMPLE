@@ -5,14 +5,17 @@
 #if defined(__WINDOWS__)
     #include <Windows.h>
 #elif defined(__LINUX__) || defined(__APPLE__)
+#include <cerrno>
+    #include <cassert>
+    #include <sys/errno.h>
     #include <fcntl.h>
     #include <unistd.h>
     #include <cstdio>
 #endif
 
 #if defined(__LINUX__) || defined(__APPLE__)
-errno_t fopen_s(FILE** f, const char* name, const char* mode) {
-    errno_t ret = 0;
+error_t fopen_s(FILE** f, const char* name, const char* mode) {
+    error_t ret = 0;
     assert(f);
     *f = fopen(name, mode);
     if (!*f)
@@ -46,17 +49,21 @@ void File::Copy(const char* src, const char* dest, bool overwrite)
     bool check = CopyFile(src, dest, !overwrite);
     printf("%s\n", check ? "true" : "false");
 #elif defined(__LINUX__) || defined(__APPLE)
+    if (Exists(dest) && !overwrite) return;
+    FILE* source;
+    FILE* destination;
+
+    fopen_s(&source, src, "r");
+    fopen_s(&destination, dest, "w");
+
     char buf[BUFSIZ];
     size_t size;
 
-    int source = open(src, O_RDONLY, 0);
-    int destination = open(dest, O_WRONLY | O_CREAT, 0644);
+    while ((size = fread(buf, 1, BUFSIZ, source)))
+        fwrite(buf, 1, size, destination);
 
-    while ((size = read(src, buf, BUFSIZ)) > 0)
-        write(destination, buf, size);
-
-    close(source);
-    close(destination);
+    fclose(source);
+    fclose(destination);
 #endif
 }
 

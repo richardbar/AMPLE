@@ -65,6 +65,8 @@ void Program::Main(std::vector<std::string>& args)
 
 
             Memory::FreeMemory();
+            for (auto it = Libraries->begin(); it != Libraries->end(); it++)
+                delete (*Libraries)[it->first].first;
             delete Libraries;
             delete Variables;
         }
