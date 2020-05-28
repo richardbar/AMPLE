@@ -5,10 +5,46 @@
 #include "Library.h"
 #include "Memory.h"
 #include "Metadata.h"
+#include "CorruptedProgramException.h"
+#include "Register.h"
 
+#include <cmath>
 #include <cstdio>
 #include <exception>
 #include <map>
+
+int _exitCode = 0;
+
+std::vector<Instruction> Program::GetProgram(FILE *fptr)
+{
+    auto returny = std::vector<Instruction>();
+
+    size_t startOfProgram = ftell(fptr);
+    fseek(fptr, 0, SEEK_END);
+    size_t endOfProgram = ftell(fptr);
+    fseek(fptr, 0, startOfProgram);
+    size_t sizeOfProgram = endOfProgram - startOfProgram - 1;
+
+    if (sizeOfProgram % (Program::matrixColumns * Program::matrixRows) != 0)
+        throw CorruptedProgramException("Program is corrupted");
+
+    int numOfInstr = floor(sizeOfProgram / (Program::matrixColumns * Program::matrixRows));
+
+    for (int i = 0; i < numOfInstr; i++)
+    {
+        Instruction d;
+        for (int j = 0; j < Program::matrixColumns; j++)
+        {
+            for (int k = 0; k < Program::matrixRows; k++)
+            {
+                d._instruction[j][k] = fgetc(fptr);
+            }
+        }
+        returny.push_back(d);
+    }
+
+    return returny;
+}
 
 void Program::Main(std::vector<std::string>& args)
 {
@@ -46,37 +82,70 @@ void Program::Main(std::vector<std::string>& args)
             exit(-1);
         }
 
+        auto Libraries = new std::map<int, std::pair<Library*, std::map<int, void*>>>();
+        auto Variables = new std::map<std::string, std::string>();
+        Memory* memory = {0};
+        Memory* registers = {0};
+
         try {
-            auto Libraries = new std::map<int, std::pair<Library*, std::map<int, void*>>>();
-            auto Variables = new std::map<std::string, std::string>();
             LoadMetaData(fptr, *Libraries, *Variables);
 
-            int memorySize = 1024;
+            uint64_t memorySize = 1024;
             if (Variables->find("Memory") != Variables->end())
             {
+                bool memorySet = false;
+                if (((*Variables)["Memory"]).size() > 2)
+                {
+                    std::string& memSetting = (*Variables)["Memory"];
+                    if (memSetting.substr(memSetting.size() - 2) == "KB")
+                    {
+                        std::string bb = memSetting.substr(0, memSetting.size() - 2);
+                        memorySize = std::stoull(bb) * 1024;
+                        memorySet = true;
+                    }
+                    else if (memSetting.substr(memSetting.size() - 2) == "MB")
+                    {
+                        std::string bb = memSetting.substr(0, memSetting.size() - 2);
+                        memorySize = std::stoull(bb) * 1024 * 1024;
+                        memorySet = true;
+                    }
+                    else if (memSetting.substr(memSetting.size() - 2) == "GB")
+                    {
+                        std::string bb = memSetting.substr(0, memSetting.size() - 2);
+                        memorySize = std::stoull(bb) * 1024 * 1024 * 1024;
+                        memorySet = true;
+                    }
+                }
                 try {
-                    memorySize = std::stoi((*Variables)["Memory"]);
-                    printf("Setting memory to %d\n", std::stoi((*Variables)["Memory"]));
+                    if (!memorySet)
+                        memorySize = std::stoull((*Variables)["Memory"]);
+                    //printf("Setting memory to %d bytes\n", std::stoi((*Variables)["Memory"]));
                 }
                 catch (...) { }
             }
-            Memory::InitializeMemory(sizeof(int64_t), memorySize);
 
+            memory = new Memory(memorySize);
+            printf("Set memory to %ld bytes\n", memorySize);
+            registers = new Register(64);
 
-
-            Memory::FreeMemory();
-            for (auto it = Libraries->begin(); it != Libraries->end(); it++)
-                delete (*Libraries)[it->first].first;
-            delete Libraries;
-            delete Variables;
+            std::vector<Instruction> program = Program::GetProgram(fptr);
         }
         catch (std::exception& e)
         {
-            printf("%s\n", e.what());
+            fprintf(stderr, "%s\n", e.what());
+            _exitCode = -1;
         }
 
+        delete memory;
+        delete registers;
+
+        for (auto& Library : *Libraries)
+            delete Library.second.first;
+
+        delete Libraries;
+        delete Variables;
 
         fclose(fptr);
     }
-    exit(0);
+    exit(_exitCode);
 }

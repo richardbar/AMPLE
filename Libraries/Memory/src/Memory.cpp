@@ -1,36 +1,38 @@
 #include "IndexOutOfRangeException.h"
 #include "Memory.h"
+#include "OutOfMemoryException.h"
 
 #include <cstdlib>
+#include <cstring>
 
-void* memory = nullptr;
-uint8_t posSize = 0;
-size_t size = 0;
-
-bool Memory::InitializeMemory(uint8_t ssize, size_t nsize)
+Memory::Memory(size_t size)
 {
-    posSize = ssize;
-    size = nsize;
+    _size = size;
 
-    memory = (void*)malloc(posSize * size);
-    return memory != nullptr;
+    _memory = (void*)malloc(_size);
+    if (!_memory)
+        throw OutOfMemoryException("Not enough memory to allocate");
+    _memory = memset(_memory, 0, _size);
+    if (!_memory)
+        throw OutOfMemoryException("Not enough memory to allocate");
 }
 
-bool Memory::ResizeMemory(size_t nsize)
+void Memory::ResizeMemory(size_t size)
 {
-    size = nsize;
+    _size = size;
 
-    memory = (void*)realloc(memory, posSize * size);
-    return memory != nullptr;
-}
-
-void Memory::FreeMemory()
-{
-    free(memory);
+    _memory = (void*)realloc(_memory, _size);
+    if (!_memory)
+        throw OutOfMemoryException("Not enough memory to allocate");
 }
 
 void* Memory::Get(uint64_t pos)
 {
-    if (pos >= size) throw IndexOutOfRangeException("");
-    return (void*)((uint64_t)memory + pos * posSize);
+    if (pos >= _size) throw IndexOutOfRangeException("");
+    return (void*)((uint64_t)_memory + pos);
+}
+
+Memory::~Memory()
+{
+    free(_memory);
 }

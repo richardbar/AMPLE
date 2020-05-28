@@ -11,12 +11,14 @@ else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
+include_directories(../AMPLE/include)
 include_directories(../Exceptions)
 include_directories(../Library)
 
 include_directories(include)
 
-add_library(${PROJECT_NAME} STATIC src/Memory.cpp)
+file(GLOB SRC "src/*.cpp")
+add_library(${PROJECT_NAME} STATIC ${SRC})
 add_library(AMPLE::Memory ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)

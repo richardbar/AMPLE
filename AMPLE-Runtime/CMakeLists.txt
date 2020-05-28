@@ -10,7 +10,7 @@ else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
-get_filename_component(PARENT_DIR ../ ABSOLUTE)
+get_filename_component(PARENT_DIR .. ABSOLUTE)
 
 add_subdirectory(${PARENT_DIR}/Libraries/Exceptions Exceptions)
 add_subdirectory(${PARENT_DIR}/Libraries/Library Library)
