@@ -22,7 +22,3 @@ rm -rf *
 
 cmake -DCMAKE_BUILD_TYPE=Release ../AMPLE-Runtime/
 make
-
-printf "\n"
-./AMPLE ~/Projects/Program.ample
-printf "\n"

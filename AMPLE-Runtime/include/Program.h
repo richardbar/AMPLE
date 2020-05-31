@@ -12,8 +12,8 @@ typedef struct
 class Program
 {
 public:
-    static const int matrixRows = 6;
-    static const int matrixColumns = 5;
+    static const int matrixRows = 8;
+    static const int matrixColumns = 8;
     static void Main(std::vector<std::string>& args);
 private:
     static std::vector<Instruction> GetProgram(FILE* fptr);

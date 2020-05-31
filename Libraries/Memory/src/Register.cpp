@@ -3,14 +3,18 @@
 #include "OutOfMemoryException.h"
 
 #include <cstdlib>
+#include <cstring>
 
-Register::Register(size_t size) : Memory(size * 8) { }
+Register::Register(uint64_t size) : Memory(size * 8) { }
 
-void Register::ResizeMemory(size_t size)
+void Register::ResizeMemory(uint64_t size)
 {
     _size = size;
 
-    _memory = (void*)realloc(_memory, _size * 8);
+    _memory = (void*)realloc(_memory, (size_t )_size * 8);
+    if (!_memory)
+        throw OutOfMemoryException("Not enough memory to allocate");
+    _memory = memset(_memory, 0, (size_t)_size);
     if (!_memory)
         throw OutOfMemoryException("Not enough memory to allocate");
 }

@@ -8,10 +8,10 @@ class Memory
 {
 protected:
     void* _memory;
-    size_t _size;
+    uint64_t _size;
 public:
-    EXPORT explicit Memory(size_t size);
-    EXPORT virtual void ResizeMemory(size_t size);
+    EXPORT explicit Memory(uint64_t size);
+    EXPORT virtual void ResizeMemory(uint64_t size);
     EXPORT virtual void* Get(uint64_t pos);
     EXPORT virtual ~Memory();
 };

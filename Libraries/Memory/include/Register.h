@@ -9,8 +9,8 @@
 class Register : virtual public Memory
 {
 public:
-    Register(size_t size);
-    void ResizeMemory(std::size_t size);
+    Register(uint64_t size);
+    void ResizeMemory(uint64_t size);
     void* Get(uint64_t pos);
     ~Register();
 };

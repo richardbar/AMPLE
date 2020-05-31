@@ -5,23 +5,23 @@
 #include <cstdlib>
 #include <cstring>
 
-Memory::Memory(size_t size)
+Memory::Memory(uint64_t size)
 {
     _size = size;
 
-    _memory = (void*)malloc(_size);
+    _memory = (void*)malloc((size_t)_size);
     if (!_memory)
         throw OutOfMemoryException("Not enough memory to allocate");
-    _memory = memset(_memory, 0, _size);
+    _memory = memset(_memory, 0, (size_t)_size);
     if (!_memory)
         throw OutOfMemoryException("Not enough memory to allocate");
 }
 
-void Memory::ResizeMemory(size_t size)
+void Memory::ResizeMemory(uint64_t size)
 {
     _size = size;
 
-    _memory = (void*)realloc(_memory, _size);
+    _memory = (void*)realloc(_memory, (size_t)_size);
     if (!_memory)
         throw OutOfMemoryException("Not enough memory to allocate");
 }

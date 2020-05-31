@@ -52,8 +52,10 @@ Library::Library(std::string& Library)
 {
 #if defined(__WINDOWS__)
     LoadLib(std::string(GetHomeDir()).append(R"(\.ample\libs\)").append(Library).append(".dll"));
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(__LINUX__)
     LoadLib(std::string(GetHomeDir()).append("/.ample/libs/").append(Library).append(".so"));
+#elif defined(__APPLE__)
+    LoadLib(std::string(GetHomeDir()).append("/ample/libs/").append(Library).append(".dylib"));
 #endif
 }
 
@@ -89,8 +91,11 @@ bool Library::LibraryIsInstalled(std::string& library)
 #if defined(__WINDOWS__)
     std::string libPath = std::string(GetHomeDir()).append(R"(\.ample\libs\)").append(library).append(".dll");
     fopen_s(&fptr, libPath.c_str(), "r");
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(__LINUX__)
     std::string libPath = std::string(GetHomeDir()).append("/.ample/libs/").append(library).append(".so");
+    fptr = fopen(libPath.c_str(), "r");
+#elif defined(__APPLE__)
+    std::string libPath = std::string(GetHomeDir()).append("/ample/libs/").append(library).append(".dylib");
     fptr = fopen(libPath.c_str(), "r");
 #endif
     if (fptr)

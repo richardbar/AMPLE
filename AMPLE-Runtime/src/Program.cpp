@@ -1,6 +1,5 @@
 #include "Program.h"
 
-#include "DllNotFoundException.h"
 #include "File.h"
 #include "Library.h"
 #include "Memory.h"
@@ -10,25 +9,28 @@
 
 #include <cmath>
 #include <cstdio>
+#include <ctime>
 #include <exception>
 #include <map>
 
-int _exitCode = 0;
+int exitCode = 0;
 
 std::vector<Instruction> Program::GetProgram(FILE *fptr)
 {
-    auto returny = std::vector<Instruction>();
+    auto returnVal = std::vector<Instruction>();
 
+    fpos_t position;
+    fgetpos(fptr, &position);
     size_t startOfProgram = ftell(fptr);
     fseek(fptr, 0, SEEK_END);
     size_t endOfProgram = ftell(fptr);
-    fseek(fptr, 0, startOfProgram);
-    size_t sizeOfProgram = endOfProgram - startOfProgram - 1;
+    fsetpos(fptr, &position);
+    size_t sizeOfProgram = endOfProgram - startOfProgram;
 
     if (sizeOfProgram % (Program::matrixColumns * Program::matrixRows) != 0)
         throw CorruptedProgramException("Program is corrupted");
 
-    int numOfInstr = floor(sizeOfProgram / (Program::matrixColumns * Program::matrixRows));
+    int numOfInstr = int((sizeOfProgram * 1.0) / (Program::matrixColumns * Program::matrixRows));
 
     for (int i = 0; i < numOfInstr; i++)
     {
@@ -37,17 +39,21 @@ std::vector<Instruction> Program::GetProgram(FILE *fptr)
         {
             for (int k = 0; k < Program::matrixRows; k++)
             {
-                d._instruction[j][k] = fgetc(fptr);
+                int data = fgetc(fptr);
+                if (data == -1)
+                    throw CorruptedProgramException("Program is corrupted");
+                d._instruction[j][k] = (uint8_t)data;
             }
         }
-        returny.push_back(d);
+        returnVal.push_back(d);
     }
 
-    return returny;
+    return returnVal;
 }
 
 void Program::Main(std::vector<std::string>& args)
 {
+    clock_t startTime = clock();
     if (args.empty())
     {
         fprintf(stderr, "You need to specify program files to run.\n");
@@ -84,8 +90,8 @@ void Program::Main(std::vector<std::string>& args)
 
         auto Libraries = new std::map<int, std::pair<Library*, std::map<int, void*>>>();
         auto Variables = new std::map<std::string, std::string>();
-        Memory* memory = {0};
-        Memory* registers = {0};
+        Memory* memory = {nullptr};
+        Register* registers = {nullptr};
 
         try {
             LoadMetaData(fptr, *Libraries, *Variables);
@@ -115,17 +121,21 @@ void Program::Main(std::vector<std::string>& args)
                         memorySize = std::stoull(bb) * 1024 * 1024 * 1024;
                         memorySet = true;
                     }
+                    else if (memSetting.substr(memSetting.size() - 2) == "TB")
+                    {
+                        std::string bb = memSetting.substr(0, memSetting.size() - 2);
+                        memorySize = std::stoull(bb) * 1024 * 1024 * 1024 * 1024;
+                        memorySet = true;
+                    }
                 }
                 try {
                     if (!memorySet)
                         memorySize = std::stoull((*Variables)["Memory"]);
-                    //printf("Setting memory to %d bytes\n", std::stoi((*Variables)["Memory"]));
                 }
                 catch (...) { }
             }
 
             memory = new Memory(memorySize);
-            printf("Set memory to %ld bytes\n", memorySize);
             registers = new Register(64);
 
             std::vector<Instruction> program = Program::GetProgram(fptr);
@@ -133,7 +143,7 @@ void Program::Main(std::vector<std::string>& args)
         catch (std::exception& e)
         {
             fprintf(stderr, "%s\n", e.what());
-            _exitCode = -1;
+            exitCode = -1;
         }
 
         delete memory;
@@ -147,5 +157,10 @@ void Program::Main(std::vector<std::string>& args)
 
         fclose(fptr);
     }
-    exit(_exitCode);
+
+    clock_t endTime = clock();
+    double executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
+    printf("\n%lf milliseconds\n", executionTime);
+
+    exit(exitCode);
 }

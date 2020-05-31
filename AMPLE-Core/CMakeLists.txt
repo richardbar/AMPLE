@@ -10,10 +10,16 @@ else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
+get_filename_component(PARENT_DIR .. ABSOLUTE)
+
+add_subdirectory(${PARENT_DIR}/Libraries/Exceptions Exceptions)
+add_subdirectory(${PARENT_DIR}/Libraries/Library Library)
+add_subdirectory(${PARENT_DIR}/Libraries/IO IO)
+add_subdirectory(${PARENT_DIR}/Libraries/Memory Memory)
 
 include_directories(include)
-include_directories(../Libraries/AMPLE/include)
+include_directories(${PARENT_DIR}/Libraries/AMPLE/include)
 
-file(GLOB SRC "src/*.cpp")
+add_library(${PROJECT_NAME} SHARED src/astdio.cpp)
 
-add_library(${PROJECT_NAME} SHARED ${SRC})
+target_link_libraries(${PROJECT_NAME} Memory)
