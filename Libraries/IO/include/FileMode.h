@@ -4,7 +4,8 @@
 enum FileMode {
     Read = 1,
     Write = 2,
-    Append = 4
+    Append = 4,
+    Binary = 8
 };
 
 #endif//__AMPLE_LIBRARY_FILEMODE_H__

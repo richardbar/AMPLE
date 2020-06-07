@@ -28,6 +28,7 @@ void File::Close(FILE* fptr) {
     fclose(fptr);
 }
 
+
 void File::Copy(std::string& src, std::string& dest)
 {
     Copy(src.c_str(), dest.c_str(), false);
@@ -67,6 +68,7 @@ void File::Copy(const char* src, const char* dest, bool overwrite)
 #endif
 }
 
+
 void File::Create(std::string& fileName)
 {
     Create(fileName.c_str());
@@ -76,6 +78,23 @@ void File::Create(const char* fileName)
 {
     std::ofstream f(fileName);
 }
+
+
+void File::Delete(std::string& fileName)
+{
+    Delete(fileName.c_str());
+}
+
+void File::Delete(const char* fileName)
+{
+    if (!Exists(fileName)) return;
+#if defined(__WINDOWS__)
+    DeleteFile(fileName);
+#elif defined(__LINUX__) || defined(__APPLE__)
+    remove(fileName);
+#endif
+}
+
 
 bool File::Exists(std::string& fileName)
 {
@@ -93,6 +112,34 @@ bool File::Exists(const char* fileName) {
     return false;
 }
 
+
+void File::Move(std::string& src, std::string& dest)
+{
+    Move(src.c_str(), dest.c_str(), false);
+}
+
+void File::Move(const char* src, const char* dest)
+{
+    Move(src, dest, false);
+}
+
+void File::Move(std::string& src, std::string& dest, bool overwrite)
+{
+    Move(src.c_str(), dest.c_str(), overwrite);
+}
+
+void File::Move(const char* src, const char* dest, bool overwrite)
+{
+    if (Exists(dest) && !overwrite) return;
+#if defined(__WINDOWS__)
+    MoveFile(src, dest);
+#else
+    Copy(src, dest);
+    Delete(src);
+#endif
+}
+
+
 FILE* File::Open(std::string& fileName, FileMode fileMode)
 {
     return Open(fileName.c_str(), fileMode);
@@ -100,11 +147,23 @@ FILE* File::Open(std::string& fileName, FileMode fileMode)
 
 FILE *File::Open(const char *fileName, FileMode fileMode) {
     FILE* fptr = nullptr;
-    if ((fileMode & FileMode::Read) == FileMode::Read && (fileMode & FileMode::Write) == FileMode::Write)
-        fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a+" : "w+");
-    else if ((fileMode & FileMode::Write) == FileMode::Write)
-        fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a" : "w");
-    else if ((fileMode & FileMode::Read) == FileMode::Read)
-        fopen_s(&fptr, fileName, "r");
+    if ((fileMode & FileMode::Binary) != FileMode::Binary)
+    {
+        if ((fileMode & FileMode::Read) == FileMode::Read && (fileMode & FileMode::Write) == FileMode::Write)
+            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "ab+" : "wb+");
+        else if ((fileMode & FileMode::Write) == FileMode::Write)
+            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "ab" : "wb");
+        else if ((fileMode & FileMode::Read) == FileMode::Read)
+            fopen_s(&fptr, fileName, "rb");
+    }
+    else
+    {
+        if ((fileMode & FileMode::Read) == FileMode::Read && (fileMode & FileMode::Write) == FileMode::Write)
+            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a+" : "w+");
+        else if ((fileMode & FileMode::Write) == FileMode::Write)
+            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a" : "w");
+        else if ((fileMode & FileMode::Read) == FileMode::Read)
+            fopen_s(&fptr, fileName, "r");
+    }
     return fptr;
 }

@@ -1,5 +1,5 @@
-#ifndef __AMPLE_CORRUPTEDPROGRAMEXCEPTION_H__
-#define __AMPLE_CORRUPTEDPROGRAMEXCEPTION_H__
+#ifndef __AMPLE_CORRUPTED_PROGRAM_EXCEPTION_H__
+#define __AMPLE_CORRUPTED_PROGRAM_EXCEPTION_H__
 
 #include "AMPLE.h"
 
@@ -8,16 +8,12 @@
 
 class CorruptedProgramException : public std::exception {
 public:
-    EXPORT explicit CorruptedProgramException(const char *message);
-
-    EXPORT explicit CorruptedProgramException(const std::string &message);
-
+    EXPORT explicit CorruptedProgramException(const char* message);
+    EXPORT explicit CorruptedProgramException(const std::string& message);
     EXPORT virtual ~CorruptedProgramException() throw();
-
-    EXPORT virtual const char *what() const throw();
-
+    EXPORT virtual const char* what() const throw();
 private:
     std::string _message;
 };
 
-#endif//__AMPLE_CORRUPTEDPROGRAMEXCEPTION_H__
+#endif//__AMPLE_CORRUPTED_PROGRAM_EXCEPTION_H__

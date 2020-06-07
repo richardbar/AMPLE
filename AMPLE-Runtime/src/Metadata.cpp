@@ -23,9 +23,10 @@ void LoadMetaData(FILE*& fptr, std::map<int, std::pair<Library*, std::map<int, v
     while (true)
     {
         int c;
-        while ((c = fgetc(fptr)) != -1)
+        while (true)
         {
-            if (c == '\n')
+            c = fgetc(fptr);
+            if (c == '\n' || c == -1)
                 break;
             line += (char)c;
         }

@@ -1,9 +1,11 @@
 #include "Program.h"
 
+#include "DllNotFoundException.h"
 #include "File.h"
 #include "Library.h"
 #include "Memory.h"
 #include "Metadata.h"
+#include "MissingMethodException.h"
 #include "CorruptedProgramException.h"
 #include "Register.h"
 
@@ -15,9 +17,14 @@
 
 int exitCode = 0;
 
-std::vector<Instruction> Program::GetProgram(FILE *fptr)
+inline bool GetBit(uint8_t byte, uint8_t bitPossition)
 {
-    auto returnVal = std::vector<Instruction>();
+    return (byte >> bitPossition) & 1;
+}
+
+std::vector<uint8_t*> Program::GetProgram(FILE *fptr)
+{
+    auto returnVal = std::vector<uint8_t*>();
 
     fpos_t position;
     fgetpos(fptr, &position);
@@ -28,24 +35,21 @@ std::vector<Instruction> Program::GetProgram(FILE *fptr)
     size_t sizeOfProgram = endOfProgram - startOfProgram;
 
     if (sizeOfProgram % (Program::matrixColumns * Program::matrixRows) != 0)
-        throw CorruptedProgramException("Program is corrupted");
+        throw CorruptedProgramException("Program is corrupted 1");
 
-    int numOfInstr = int((sizeOfProgram * 1.0) / (Program::matrixColumns * Program::matrixRows));
+    int numOfInstr = int((sizeOfProgram * 1.0) / ((Program::matrixColumns) * (Program::matrixRows)));
 
     for (int i = 0; i < numOfInstr; i++)
     {
-        Instruction d;
-        for (int j = 0; j < Program::matrixColumns; j++)
+        auto instruction = (uint8_t*)malloc(matrixRows * matrixColumns * sizeof(uint8_t));
+        for (int j = 0; j < matrixRows * matrixColumns; j++)
         {
-            for (int k = 0; k < Program::matrixRows; k++)
-            {
-                int data = fgetc(fptr);
-                if (data == -1)
-                    throw CorruptedProgramException("Program is corrupted");
-                d._instruction[j][k] = (uint8_t)data;
-            }
+            int data = fgetc(fptr);
+            if (data == -1)
+                throw CorruptedProgramException("Program is corrupted 2");
+            instruction[j] = (uint8_t)data;
         }
-        returnVal.push_back(d);
+        returnVal.push_back(instruction);
     }
 
     return returnVal;
@@ -138,10 +142,139 @@ void Program::Main(std::vector<std::string>& args)
             memory = new Memory(memorySize);
             registers = new Register(64);
 
-            std::vector<Instruction> program = Program::GetProgram(fptr);
+            std::vector<uint8_t*> program = Program::GetProgram(fptr);
+
+            for (long j = 0; j < (long)program.size(); j++) {
+                uint8_t* i = program[j];
+                if (GetBit(i[0], 7) == 1)
+                {
+                    uint8_t f = i[0];
+                    f &= ~(1UL << 7);
+                    unsigned int classPos = ((int)f) << 24 | ((int)i[1]) << 16 | ((int)i[2]) << 8 | ((int)i[3]);
+                    unsigned int functionPos = ((int)i[4]) << 24 | ((int)i[5]) << 16 | ((int)i[6]) << 8 | ((int)i[7]);
+                    if ((*Libraries).find(classPos) == (*Libraries).end())
+                        throw DllNotFoundException("Class not found");
+                    if ((*Libraries)[classPos].second.find(functionPos) == (*Libraries)[classPos].second.end())
+                        throw MissingMethodException("Method not found");
+                    auto function = (void (*)(void *, void *)) (*Libraries)[classPos].second[functionPos];
+                    function(memory, registers);
+                }
+                else
+                {
+                    unsigned int functionNum = 0;
+                    for (int k = 0; k < 4; k++)
+                    {
+                        functionNum += ((int)i[k]) << (24 - 8 * k);
+                    }
+                    switch (functionNum)
+                    {
+                        case 0x00: // jmp to next 4 bytes
+                        {
+                            j = (((int)i[4]) << 24 | ((int)i[5]) << 16 | ((int)i[6]) << 8 | ((int)i[7])) - 1;
+                        }
+                        break;
+
+                        case 0x01: // mov(00000001)
+                        {
+                            uint64_t operationType = 0;
+                            for (int k = 0; k < 8; k++)
+                                operationType += (uint64_t)i[4 + k] << (56 - 8 * k);
+                            switch (operationType)
+                            {
+                                case 0x00: //mov r1, $1 // 1 -> r1 (000000010000000000000000)
+                                {
+                                    uint64_t registerNum = 0;
+                                    int64_t value = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        value += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)registers->Get(registerNum)) = value;
+                                }
+                                break;
+
+                                case 0x01: //mov r1, r2 // r2 -> r1 (000000010000000000000001)
+                                {
+                                    uint64_t registerNum1 = 0;
+                                    int64_t registerNum2 = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        registerNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        registerNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)registers->Get(registerNum1)) = *((int64_t*)registers->Get(registerNum2));
+                                }
+                                break;
+
+                                case 0x02: //mov r1, m1 // m1 -> r1 (000000010000000000000002)
+                                {
+                                    uint64_t registerNum = 0;
+                                    int64_t memoryNum = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        memoryNum += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)registers->Get(registerNum)) = *((int64_t*)memory->Get(memoryNum));
+                                }
+                                break;
+
+                                case 0x03: //mov m1, $1 // 1 -> m1 (000000010000000000000003)
+                                {
+                                    uint64_t memoryNum = 0;
+                                    int64_t value = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        value += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)memory->Get(memoryNum)) = value;
+                                }
+                                break;
+
+                                case 0x04: //mov m1, m2 // m2 -> m1 (000000010000000000000004)
+                                {
+                                    uint64_t memoryNum1 = 0;
+                                    int64_t memoryNum2 = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        memoryNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        memoryNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)memory->Get(memoryNum1)) = *((int64_t*)memory->Get(memoryNum2));
+                                }
+                                break;
+
+                                case 0x05: //mov m1, r1 // r1 -> m1 (000000010000000000000005)
+                                {
+                                    uint64_t registerNum = 0;
+                                    int64_t memoryNum = 0;
+                                    for (int k = 0; k < 8; k++)
+                                        memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
+                                    for (int k = 0; k < 8; k++)
+                                        registerNum += (int64_t)i[20 + k] << (56 - 8 * k);
+                                    *((int64_t*)memory->Get(memoryNum)) = *((int64_t*)registers->Get(registerNum));
+                                }
+                                break;
+
+                                default:
+                                    printf("else\n");
+                                    break;
+                            }
+                        }
+                        break;
+
+                        default:
+                        {
+                            throw MissingMethodException("Method not found");
+                        }
+                    }
+                }
+            }
+
+            for (auto& i : program)
+                free(i);
         }
         catch (std::exception& e)
         {
+            fflush(stdout);
+            fflush(stderr);
             fprintf(stderr, "%s\n", e.what());
             exitCode = -1;
         }
@@ -162,5 +295,6 @@ void Program::Main(std::vector<std::string>& args)
     double executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
     printf("\n%lf milliseconds\n", executionTime);
 
+    fgetc(stdin);
     exit(exitCode);
 }

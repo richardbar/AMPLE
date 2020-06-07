@@ -1,5 +1,5 @@
-#ifndef __AMPLE_MISSINGMETHODEXCEPTION_H__
-#define __AMPLE_MISSINGMETHODEXCEPTION_H__
+#ifndef __AMPLE_MISSING_METHOD_EXCEPTION_H__
+#define __AMPLE_MISSING_METHOD_EXCEPTION_H__
 
 #include "AMPLE.h"
 
@@ -8,16 +8,12 @@
 
 class MissingMethodException : public std::exception {
 public:
-    EXPORT explicit MissingMethodException(const char *message);
-
-    EXPORT explicit MissingMethodException(const std::string &message);
-
+    EXPORT explicit MissingMethodException(const char* message);
+    EXPORT explicit MissingMethodException(const std::string& message);
     EXPORT virtual ~MissingMethodException() throw();
-
-    EXPORT virtual const char *what() const throw();
-
+    EXPORT virtual const char* what() const throw();
 private:
     std::string _message;
 };
 
-#endif//__AMPLE_MISSINGMETHODEXCEPTION_H__
+#endif//__AMPLE_MISSING_METHOD_EXCEPTION_H__
