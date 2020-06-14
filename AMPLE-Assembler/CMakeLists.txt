@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-project(AMPLE)
+project(AMPLE-Assembler)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 if (MSVC)
     # warning level 4 and all warnings as errors

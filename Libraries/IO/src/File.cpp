@@ -1,6 +1,10 @@
 #include "File.h"
 
+#include "ArgumentNullException.h"
+#include "FileNotFoundException.h"
 #include <fstream>
+#include "IOException.h"
+#include "UnauthorizedAccessException.h"
 
 #if defined(__WINDOWS__)
     #include <Windows.h>
@@ -47,8 +51,7 @@ void File::Copy(std::string& src, std::string& dest, bool overwrite)
 void File::Copy(const char* src, const char* dest, bool overwrite)
 {
 #if defined(__WINDOWS__)
-    bool check = CopyFile(src, dest, !overwrite);
-    printf("%s\n", check ? "true" : "false");
+    CopyFile(src, dest, !overwrite);
 #elif defined(__LINUX__) || defined(__APPLE)
     if (Exists(dest) && !overwrite) return;
     FILE* source;
@@ -146,24 +149,30 @@ FILE* File::Open(std::string& fileName, FileMode fileMode)
 }
 
 FILE *File::Open(const char *fileName, FileMode fileMode) {
+    if (fileName == nullptr)
+        throw ArgumentNullException("File name can not be null");
     FILE* fptr = nullptr;
+    const char* mode = nullptr;
     if ((fileMode & FileMode::Binary) != FileMode::Binary)
     {
         if ((fileMode & FileMode::Read) == FileMode::Read && (fileMode & FileMode::Write) == FileMode::Write)
-            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "ab+" : "wb+");
+            mode = (fileMode & FileMode::Append) == FileMode::Append ? "ab+" : "wb+";
         else if ((fileMode & FileMode::Write) == FileMode::Write)
-            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "ab" : "wb");
+            mode = (fileMode & FileMode::Append) == FileMode::Append ? "ab" : "wb";
         else if ((fileMode & FileMode::Read) == FileMode::Read)
-            fopen_s(&fptr, fileName, "rb");
+            mode = "rb";
     }
     else
     {
         if ((fileMode & FileMode::Read) == FileMode::Read && (fileMode & FileMode::Write) == FileMode::Write)
-            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a+" : "w+");
+            mode = (fileMode & FileMode::Append) == FileMode::Append ? "a+" : "w+";
         else if ((fileMode & FileMode::Write) == FileMode::Write)
-            fopen_s(&fptr, fileName, (fileMode & FileMode::Append) == FileMode::Append ? "a" : "w");
+            mode = (fileMode & FileMode::Append) == FileMode::Append ? "a" : "w";
         else if ((fileMode & FileMode::Read) == FileMode::Read)
-            fopen_s(&fptr, fileName, "r");
+            mode = "r";
     }
+    fopen_s(&fptr, fileName, mode);
+    if (!fptr)
+        throw IOException("An I/O exception happened when opening file");
     return fptr;
 }

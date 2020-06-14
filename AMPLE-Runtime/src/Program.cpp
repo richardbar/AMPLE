@@ -2,6 +2,7 @@
 
 #include "DllNotFoundException.h"
 #include "File.h"
+#include "IOException.h"
 #include "Library.h"
 #include "Memory.h"
 #include "Metadata.h"
@@ -64,10 +65,18 @@ void Program::Main(std::vector<std::string>& args)
         exit(-1);
     }
 
-    if (args.size() == 1 && (args[0] == std::string("-h") || args[0] == std::string("--help")))
+    if (args.size() == 1)
     {
-        fprintf(stdout, "AMPLE VM\nSupports AMPLE V1\nExperimental Features\n");
-        exit(0);
+        if ((args[0] == std::string("-h")) || (args[0] == std::string("--help")))
+        {
+            fprintf(stdout, "AMPLE VM\nSupports AMPLE V1\nExperimental Features\n");
+            exit(0);
+        }
+        else if ((args[0] == std::string("-v")) || (args[0] == std::string("--version")))
+        {
+            fprintf(stdout, "AMPLE VM Version: Alpha 0.1\nExperimental Features\n");
+            exit(0);
+        }
     }
 
     if (args.size() > 1 && (args[0] == std::string("-i") || args[0] == std::string("--install")))
@@ -79,16 +88,19 @@ void Program::Main(std::vector<std::string>& args)
 
     for (auto& fileName : args)
     {
-        FILE* fptr = File::Open(fileName, FileMode::Read);
-        if (!fptr)
-        {
-            fprintf(stderr, "File: \"%s\" does not exist.\n", fileName.c_str());
-            exit(-1);
-        }
         if ((fileName.find_last_of('.') != std::string::npos) ? fileName.substr(fileName.find_last_of('.') + 1) != std::string("ample"): true)
         {
-            fclose(fptr);
             fprintf(stderr, "File: \"%s\" is not an AMPLE Executable File\n", fileName.c_str());
+            exit(-1);
+        }
+        FILE* fptr;
+        try
+        {
+            fptr = File::Open(fileName, FileMode::Read);
+        }
+        catch (IOException& e)
+        {
+            fprintf(stderr, "%s", e.what());
             exit(-1);
         }
 
@@ -168,10 +180,7 @@ void Program::Main(std::vector<std::string>& args)
                     }
                     switch (functionNum)
                     {
-                        case 0x00: // jmp to next 4 bytes
-                        {
-                            j = (((int)i[4]) << 24 | ((int)i[5]) << 16 | ((int)i[6]) << 8 | ((int)i[7])) - 1;
-                        }
+                        case 0x00: //Stall (Do nothing)
                         break;
 
                         case 0x01: // mov(00000001)
@@ -260,6 +269,12 @@ void Program::Main(std::vector<std::string>& args)
                         }
                         break;
 
+                        case 0x02: // jmp to next 4 bytes
+                        {
+                            j = (((int)i[4]) << 24 | ((int)i[5]) << 16 | ((int)i[6]) << 8 | ((int)i[7])) - 1;
+                        }
+                        break;
+
                         default:
                         {
                             throw MissingMethodException("Method not found");
@@ -293,7 +308,7 @@ void Program::Main(std::vector<std::string>& args)
 
     clock_t endTime = clock();
     double executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
-    printf("\n%lf milliseconds\n", executionTime);
+    printf("\n%lf seconds\n", executionTime);
 
     fgetc(stdin);
     exit(exitCode);
