@@ -11,7 +11,7 @@ char* GetFileExtension(char* fileName, size_t len)
 {
     if (!fileName) return NULL;
     size_t i;
-    for (i = len - 1; i >= 0; i--)
+    for (i = len - 1; i > 0; i--)
     {
         if (fileName[i] == '.') break;
     }
@@ -60,7 +60,7 @@ int GetCleanLine(FILE* fptr, char** output)
         }
     }
 
-    for (i = usedCharacters - 1; i >= 0; i--)
+    for (i = usedCharacters - 1; i > 0; i--)
     {
         if ((*output)[i] != ' ' && (*output)[i] != '\t')
             break;
@@ -220,6 +220,11 @@ int main(int argc, char** argv)
 {
     argc--;
     argv++;
+    if (argc == 0)
+    {
+        fprintf(stderr, "You need to specify program files to compile.\n");
+        exit(-1);
+    }
     if (argc == 1)
     {
         if (strcmp(argv[0], "-h") == 0 || strcmp(argv[0], "--help") == 0)

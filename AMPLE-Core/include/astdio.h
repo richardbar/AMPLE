@@ -3,7 +3,6 @@
 
 #include "AMPLE.h"
 #include "Memory.h"
-#include "Register.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -11,6 +10,9 @@ extern "C"
 #endif
 
 EXPORT void Print(void* mem, void* reg);
+
+EXPORT void OpenF(void* mem, void* reg);
+EXPORT void CloseF(void* mem, void* reg);
 
 #ifdef __cplusplus
 }

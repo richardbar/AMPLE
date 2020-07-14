@@ -8,7 +8,7 @@
 #include "Metadata.h"
 #include "MissingMethodException.h"
 #include "CorruptedProgramException.h"
-#include "Register.h"
+#include "OutOfMemoryException.h"
 
 #include <cmath>
 #include <cstdio>
@@ -106,8 +106,8 @@ void Program::Main(std::vector<std::string>& args)
 
         auto Libraries = new std::map<int, std::pair<Library*, std::map<int, void*>>>();
         auto Variables = new std::map<std::string, std::string>();
-        Memory* memory = {nullptr};
-        Register* registers = {nullptr};
+        Memory* memory = (Memory*)malloc(sizeof(Memory));
+        Memory* registers = (Memory*)malloc(sizeof(Memory));
 
         try {
             LoadMetaData(fptr, *Libraries, *Variables);
@@ -151,8 +151,8 @@ void Program::Main(std::vector<std::string>& args)
                 catch (...) { }
             }
 
-            memory = new Memory(memorySize);
-            registers = new Register(64);
+            if (!(MemoryInit(memory, memorySize) && MemoryInit(registers, 64)))
+                throw OutOfMemoryException("Out of Memory");
 
             std::vector<uint8_t*> program = Program::GetProgram(fptr);
 
@@ -198,7 +198,8 @@ void Program::Main(std::vector<std::string>& args)
                                         registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         value += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)registers->Get(registerNum)) = value;
+                                    void* mem = GetMemoryPos(registers, registerNum);
+                                    *(int64_t*)mem = value;
                                 }
                                 break;
 
@@ -210,7 +211,7 @@ void Program::Main(std::vector<std::string>& args)
                                         registerNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         registerNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)registers->Get(registerNum1)) = *((int64_t*)registers->Get(registerNum2));
+                                    *((int64_t*)GetMemoryPos(registers, registerNum1)) = *((int64_t*)GetMemoryPos(registers, registerNum2));
                                 }
                                 break;
 
@@ -222,7 +223,7 @@ void Program::Main(std::vector<std::string>& args)
                                         registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         memoryNum += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)registers->Get(registerNum)) = *((int64_t*)memory->Get(memoryNum));
+                                    *(int64_t*)GetMemoryPos(registers, registerNum) = *(int64_t*)GetMemoryPos(memory, memoryNum);
                                 }
                                 break;
 
@@ -234,7 +235,9 @@ void Program::Main(std::vector<std::string>& args)
                                         memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         value += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)memory->Get(memoryNum)) = value;
+
+                                    void* mem = GetMemoryPos(memory, memoryNum);
+                                    *((int64_t*)mem) = value;
                                 }
                                 break;
 
@@ -246,7 +249,8 @@ void Program::Main(std::vector<std::string>& args)
                                         memoryNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         memoryNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)memory->Get(memoryNum1)) = *((int64_t*)memory->Get(memoryNum2));
+
+                                    *(int64_t*)GetMemoryPos(memory, memoryNum1) = *(int64_t*)GetMemoryPos(memory, memoryNum2);
                                 }
                                 break;
 
@@ -258,7 +262,7 @@ void Program::Main(std::vector<std::string>& args)
                                         memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
                                     for (int k = 0; k < 8; k++)
                                         registerNum += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)memory->Get(memoryNum)) = *((int64_t*)registers->Get(registerNum));
+                                    *(int64_t*)GetMemoryPos(memory, memoryNum) = *(int64_t*)GetMemoryPos(registers, registerNum);
                                 }
                                 break;
 
@@ -288,14 +292,20 @@ void Program::Main(std::vector<std::string>& args)
         }
         catch (std::exception& e)
         {
+            FreeMemory(memory);
+            FreeMemory(registers);
+            free(memory);
+            free(registers);
             fflush(stdout);
             fflush(stderr);
             fprintf(stderr, "%s\n", e.what());
             exitCode = -1;
         }
 
-        delete memory;
-        delete registers;
+        FreeMemory(memory);
+        FreeMemory(registers);
+        free(memory);
+        free(registers);
 
         for (auto& Library : *Libraries)
             delete Library.second.first;

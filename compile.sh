@@ -1,24 +1,21 @@
 #!/bin/bash
-if [ -d "build/" ]; then
-    rm -rf "build/"
+
+if [ -d "build" ]; then
+    rm -rf "build"
 fi
+mkdir "build"
+cd "build"
 
-mkdir build
-cd build/
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j4
+sudo make install
 
-cmake -DCMAKE_BUILD_TYPE=Release ../AMPLE-Core/
-make
-if [ -d "~/.ample" ]; then
-    if [ -d "~./ample/libs" ]; then
-        if [ -f "~/.ample/libs/Core.so" ]; then
-            rm "~/.ample/libs/Core.so"
-        fi
-    fi
+if [ -d ~/.ample ]; then
     rm -rf ~/.ample
 fi
-mkdir ~/.ample/libs && cp libCore.so ~/.ample/libs/Core.so
+mkdir -p ~/.ample/libs
 
-rm -rf *
+mv "AMPLE-Core/libCore.so" ~/.ample/libs/Core.so
 
-cmake -DCMAKE_BUILD_TYPE=Release ../AMPLE-Runtime/
-make
+cd ..
+build/AMPLE-Runtime/AMPLE Examples/Hello\ World/Hello\ World.ample

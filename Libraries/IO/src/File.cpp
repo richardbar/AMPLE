@@ -18,6 +18,9 @@
 #endif
 
 #if defined(__LINUX__) || defined(__APPLE__)
+#ifndef error_t
+    #define error_t int
+#endif
 error_t fopen_s(FILE** f, const char* name, const char* mode) {
     error_t ret = 0;
     assert(f);
