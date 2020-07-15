@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 typedef void *Memory;
-EXPORT _Bool MemoryInit(Memory* mem, uint64_t size);
-EXPORT _Bool ResizeMemory(Memory* mem, uint64_t newSize);
+EXPORT _Bool MemoryInit(Memory** mem, uint64_t size, uint8_t sizePerSlot);
+EXPORT _Bool ResizeMemory(Memory** mem, uint64_t newSize);
 EXPORT void *GetMemoryPos(Memory* mem, uint64_t pos);
 EXPORT void FreeMemory(Memory* mem);
 

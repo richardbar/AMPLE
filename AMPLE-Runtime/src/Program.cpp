@@ -10,6 +10,9 @@
 #include "CorruptedProgramException.h"
 #include "OutOfMemoryException.h"
 
+#include "opcodes/Hlt.h"
+#include "opcodes/Mov.h"
+
 #include <cmath>
 #include <cstdio>
 #include <ctime>
@@ -21,6 +24,16 @@ int exitCode = 0;
 inline bool GetBit(uint8_t byte, uint8_t bitPossition)
 {
     return (byte >> bitPossition) & 1;
+}
+
+template<typename T>
+inline T fixBytes(T value)
+{
+    size_t sizeofT = sizeof(T);
+    uint8_t returnVal[sizeofT];
+    for (uint32_t i = 0; i < sizeofT; i++)
+        returnVal[i] = ((uint8_t*)&value)[sizeofT - i - 1];
+    return *(T*)returnVal;
 }
 
 std::vector<uint8_t*> Program::GetProgram(FILE *fptr)
@@ -151,12 +164,12 @@ void Program::Main(std::vector<std::string>& args)
                 catch (...) { }
             }
 
-            if (!(MemoryInit(memory, memorySize) && MemoryInit(registers, 64)))
+            if (!(MemoryInit(&memory, memorySize, 1) && MemoryInit(&registers, 64, 8)))
                 throw OutOfMemoryException("Out of Memory");
 
             std::vector<uint8_t*> program = Program::GetProgram(fptr);
 
-            for (long j = 0; j < (long)program.size(); j++) {
+            for (uint32_t j = 0; j < (uint32_t)program.size(); j++) {
                 uint8_t* i = program[j];
                 if (GetBit(i[0], 7) == 1)
                 {
@@ -173,105 +186,24 @@ void Program::Main(std::vector<std::string>& args)
                 }
                 else
                 {
-                    unsigned int functionNum = 0;
-                    for (int k = 0; k < 4; k++)
-                    {
-                        functionNum += ((int)i[k]) << (24 - 8 * k);
-                    }
+                    uint32_t functionNum = fixBytes<uint32_t>(*(uint32_t*)i);
+                    i += 4;
+                    uint32_t modeNum = fixBytes<uint32_t>(*(uint32_t*)i);
+                    i += 4;
+                    uint64_t arg1 = fixBytes<uint64_t>(*(uint64_t*)i);
+                    i += 8;
+                    uint64_t arg2 = fixBytes<uint64_t>(*(uint64_t*)i);
+                    i += 8;
+                    uint64_t arg3 = fixBytes<uint64_t>(*(uint64_t*)i);
                     switch (functionNum)
                     {
                         case 0x00: //Stall (Do nothing)
-                        break;
+                            HltOP(modeNum, arg1, arg2, arg3, memory, registers, &j);
+                            break;
 
                         case 0x01: // mov(00000001)
-                        {
-                            uint64_t operationType = 0;
-                            for (int k = 0; k < 8; k++)
-                                operationType += (uint64_t)i[4 + k] << (56 - 8 * k);
-                            switch (operationType)
-                            {
-                                case 0x00: //mov r1, $1 // 1 -> r1 (000000010000000000000000)
-                                {
-                                    uint64_t registerNum = 0;
-                                    int64_t value = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        value += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    void* mem = GetMemoryPos(registers, registerNum);
-                                    *(int64_t*)mem = value;
-                                }
-                                break;
-
-                                case 0x01: //mov r1, r2 // r2 -> r1 (000000010000000000000001)
-                                {
-                                    uint64_t registerNum1 = 0;
-                                    int64_t registerNum2 = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        registerNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        registerNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *((int64_t*)GetMemoryPos(registers, registerNum1)) = *((int64_t*)GetMemoryPos(registers, registerNum2));
-                                }
-                                break;
-
-                                case 0x02: //mov r1, m1 // m1 -> r1 (000000010000000000000002)
-                                {
-                                    uint64_t registerNum = 0;
-                                    int64_t memoryNum = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        registerNum += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        memoryNum += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *(int64_t*)GetMemoryPos(registers, registerNum) = *(int64_t*)GetMemoryPos(memory, memoryNum);
-                                }
-                                break;
-
-                                case 0x03: //mov m1, $1 // 1 -> m1 (000000010000000000000003)
-                                {
-                                    uint64_t memoryNum = 0;
-                                    int64_t value = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        value += (int64_t)i[20 + k] << (56 - 8 * k);
-
-                                    void* mem = GetMemoryPos(memory, memoryNum);
-                                    *((int64_t*)mem) = value;
-                                }
-                                break;
-
-                                case 0x04: //mov m1, m2 // m2 -> m1 (000000010000000000000004)
-                                {
-                                    uint64_t memoryNum1 = 0;
-                                    int64_t memoryNum2 = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        memoryNum1 += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        memoryNum2 += (int64_t)i[20 + k] << (56 - 8 * k);
-
-                                    *(int64_t*)GetMemoryPos(memory, memoryNum1) = *(int64_t*)GetMemoryPos(memory, memoryNum2);
-                                }
-                                break;
-
-                                case 0x05: //mov m1, r1 // r1 -> m1 (000000010000000000000005)
-                                {
-                                    uint64_t registerNum = 0;
-                                    int64_t memoryNum = 0;
-                                    for (int k = 0; k < 8; k++)
-                                        memoryNum += (uint64_t)i[12 + k] << (56 - 8 * k);
-                                    for (int k = 0; k < 8; k++)
-                                        registerNum += (int64_t)i[20 + k] << (56 - 8 * k);
-                                    *(int64_t*)GetMemoryPos(memory, memoryNum) = *(int64_t*)GetMemoryPos(registers, registerNum);
-                                }
-                                break;
-
-                                default:
-                                    printf("else\n");
-                                    break;
-                            }
-                        }
-                        break;
+                            MovOP(modeNum, arg1, arg2, arg3, memory, registers, &j);
+                            break;
 
                         case 0x02: // jmp to next 4 bytes
                         {
@@ -304,8 +236,6 @@ void Program::Main(std::vector<std::string>& args)
 
         FreeMemory(memory);
         FreeMemory(registers);
-        free(memory);
-        free(registers);
 
         for (auto& Library : *Libraries)
             delete Library.second.first;
@@ -318,8 +248,6 @@ void Program::Main(std::vector<std::string>& args)
 
     clock_t endTime = clock();
     double executionTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
-    printf("\n%lf seconds\n", executionTime);
 
-    fgetc(stdin);
     exit(exitCode);
 }
