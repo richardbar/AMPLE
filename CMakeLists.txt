@@ -1,10 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
+project(AMPLE-Runtime VERSION "0.0.3")
 
-add_subdirectory(Libraries/Exceptions Exceptions)
-add_subdirectory(Libraries/Library Library)
-add_subdirectory(Libraries/IO IO)
-add_subdirectory(Libraries/Memory Memory)
+set(CMAKE_C_STANDARD 99)
 
-add_subdirectory(AMPLE-Assembler)
-add_subdirectory(AMPLE-Runtime)
-add_subdirectory(AMPLE-Core)
+add_subdirectory(lib)
+
+configure_file(include/stdAMPLE.h.in include/stdAMPLE.h @ONLY NEWLINE_STYLE CRLF)
+
+include_directories(include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+
+file(GLOB SRC src/*.c src/*/*/*.c src/*/*/OP_CODES/*.c)
+
+add_executable(${PROJECT_NAME} ${SRC})
+
+target_link_libraries(${PROJECT_NAME} AMPLE-IO-Lib)
+target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)

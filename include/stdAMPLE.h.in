@@ -1,0 +1,4 @@
+#pragma once
+
+#define __AMPLE_VERSION__ "@PROJECT_VERSION@"
+#define __AMPLE_C_VERSION__ "@CMAKE_C_STANDARD@"
