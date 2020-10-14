@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(AMPLE-Runtime VERSION "0.0.3")
 
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_FLAGS -O3)
 
 add_subdirectory(lib)
 
@@ -16,3 +17,5 @@ add_executable(${PROJECT_NAME} ${SRC})
 
 target_link_libraries(${PROJECT_NAME} AMPLE-IO-Lib)
 target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

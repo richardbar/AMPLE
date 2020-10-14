@@ -5,17 +5,13 @@
 #include "OPCODE HANDLERS/V1.h"
 
 #if defined(__WINDOWS__)
-    #include <synchapi.h>
+    #include <Windows.h>
 #elif (defined(__LINUX__) || defined(__APPLE__))
     #include <unistd.h>
 #else
     #include <time.h>
 #endif
 
-void sleepms(uint64_t ms)
-{
-
-}
 /** Waits for one AMPLE cycle
  * @param Arg1 First OP Code Argument
  * @param Arg2 Second OP Code Argument

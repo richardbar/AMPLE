@@ -9,7 +9,7 @@
 #include "HandleOP.h"
 
 #include "file.h"
-#include "List.h"
+#include "CList.h"
 
 #if (defined(__LINUX__) || defined(__APPLE__))
 #include <fcntl.h>
@@ -18,12 +18,12 @@
 #include <unistd.h>
 #endif
 
-List FilesToRun = NULL;
-List Flags = NULL;
+CList FilesToRun = NULL;
+CList Flags = NULL;
 uint8_t* memory = NULL;
 uint64_t* registers = NULL;
-List Memory = NULL;
-List Registers = NULL;
+CList Memory = NULL;
+CList Registers = NULL;
 
 bool stringComparer(void* str1, void* str2)
 {
@@ -105,8 +105,54 @@ bool HandleFile(const char* fname, int* _exitCode)
     uint8_t *fileContent;
     uint64_t sizeOfFileContent;
 #if defined(__WINDOWS__)
-    *_exitCode = 1;
-    return false;
+    {
+        uint64_t fileContentSize = 2;
+        uint64_t fileContentUsed = 0;
+
+        fileContent = (uint8_t*)malloc(fileContentSize * sizeof(uint8_t));
+
+        FILE* fptr = fopen(fname, "r");
+        if (!fptr)
+        {
+            *_exitCode = 1;
+            return false;
+        }
+
+        int c;
+        while (true)
+        {
+            if ((c = fgetc(fptr)) != -1)
+            {
+                if (fileContentSize <= fileContentUsed + 1)
+                {
+                    uint8_t* oldFileContent = fileContent;
+                    fileContentSize *= 2;
+                    fileContent = (uint8_t*)realloc(fileContent, fileContentSize * sizeof(uint8_t));
+                    if (!fileContent)
+                    {
+                        free(oldFileContent);
+                        fclose(fptr);
+                        *_exitCode = 1;
+                        return false;
+                    }
+                }
+                fileContent[fileContentUsed++] = (uint8_t)c;
+            }
+            else
+                break;
+        }
+        fclose(fptr);
+        fileContent[fileContentUsed++] = 0;
+        uint8_t* oldFileContent = fileContent;
+        fileContent = (uint8_t*)realloc(fileContent, fileContentUsed * sizeof(uint8_t));
+        if (!fileContent)
+        {
+            free(oldFileContent);
+            *_exitCode = 1;
+            return false;
+        }
+        sizeOfFileContent = fileContentUsed;
+    }
 #elif (defined(__LINUX__) || defined(__APPLE__))
     {
         int file = open(fname, O_RDONLY);
@@ -236,7 +282,7 @@ int main(int argc, char** argv)
     {
         if (!FileExists(GetElementFromList(FilesToRun, i)))
         {
-            fprintf(stdout, "File \"%s\" does not exist", GetElementFromList(FilesToRun, i));
+            fprintf(stdout, "File \"%s\" does not exist", (char*)GetElementFromList(FilesToRun, i));
             exitCode = 1;
             break;
         }
@@ -250,7 +296,7 @@ int main(int argc, char** argv)
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
-                printf("%lu ", *(uint64_t*)GetElementFromList(Registers, i * 8 + j));
+                printf("%llu ", *(uint64_t*)GetElementFromList(Registers, i * 8 + j));
             printf("\n");
         }
     }

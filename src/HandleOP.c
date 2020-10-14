@@ -1,10 +1,10 @@
 #include "HandleOP.h"
 
-extern bool HANDLE_OPCODE_V1(uint8_t*, uint32_t*, List, List);
+extern bool HANDLE_OPCODE_V1(uint8_t*, uint32_t*, CList, CList);
 
-bool (*OPCODE_HANDLER)(uint8_t*, uint32_t*, List, List) = HANDLE_OPCODE_V1;
+bool (*OPCODE_HANDLER)(uint8_t*, uint32_t*, CList, CList) = HANDLE_OPCODE_V1;
 
-bool HANDLE_OPCODE(uint8_t* OP_CODE, uint32_t* position, List Memory, List Registers)
+bool HANDLE_OPCODE(uint8_t* OP_CODE, uint32_t* position, CList Memory, CList Registers)
 {
     return OPCODE_HANDLER(OP_CODE, position, Memory, Registers);
 }

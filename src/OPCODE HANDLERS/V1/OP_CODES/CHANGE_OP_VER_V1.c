@@ -20,7 +20,7 @@ bool CHANGE_OP_VER_MEMORY(FUNCTION_ARGUMENTS)
 {
     uint32_t* pos = GetElementFromList(Memory, Arg1);
     if (!pos) return false;
-    SET_OPCODE_VERSION(*pos);
+    return SET_OPCODE_VERSION(*pos);
 }
 
 bool (*CHANGE_OP_VER_MODES[])(ARGUMENT_TYPES) = {

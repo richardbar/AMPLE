@@ -15,7 +15,7 @@
             __AMPLE_VERSION__, \
             __AMPLE_C_VERSION__);
 
-bool HandleArgs(int argNum, char** argPtr, List filesToRun, List flags, int* _exitCode)
+bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _exitCode)
 {
     if (argNum == 0)
     {
