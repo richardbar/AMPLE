@@ -7,7 +7,7 @@ include_directories(include)
 
 file(GLOB SRC src/*.c)
 
-add_library(${PROJECT_NAME} STATIC ${SRC} ${HEADERS})
+add_library(${PROJECT_NAME} SHARED ${SRC} ${HEADERS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)

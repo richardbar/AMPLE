@@ -111,7 +111,7 @@ bool HandleFile(const char* fname, int* _exitCode)
 
         fileContent = (uint8_t*)malloc(fileContentSize * sizeof(uint8_t));
 
-        FILE* fptr = fopen(fname, "r");
+        FILE* fptr = FileOpen(fname, FILE_READ | FILE_BINARY);
         if (!fptr)
         {
             *_exitCode = 1;

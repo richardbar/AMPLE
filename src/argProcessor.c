@@ -9,11 +9,16 @@
 
 #include "file.h"
 
-#define PRINT_HELP() \
-    fprintf(stdout, \
-            "AMPLE Runtime\nVersion: %s\nC Version Used: C%s", \
-            __AMPLE_VERSION__, \
+#define PRINT_HELP()                                            \
+    fprintf(stdout,                                             \
+            "AMPLE Runtime\nVersion: %s\nC Version Used: C%s",  \
+            __AMPLE_VERSION__,                                  \
             __AMPLE_C_VERSION__);
+
+#define PRINT_VERSION()                                         \
+    fprintf(stdout,                                             \
+        "AMPLE Runtime\nVersion: %s",                           \
+        __AMPLE_VERSION__);
 
 bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _exitCode)
 {
@@ -50,6 +55,26 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (strcmp("--help", argPtr[i]) == 0)
                 {
                     PRINT_HELP();
+                    *_exitCode = 0;
+                    return false;
+                }
+                else if (strcmp("--version", argPtr[i]) == 0 && argNum != 1)
+                {
+                    fprintf(stderr, "--help needs to be the only argument");
+                    *_exitCode =
+                    #if (defined(__WINDOWS__))
+                            10022
+                    #elif (defined(__LINUX__) || defined(__APPLE__))
+                        126
+                    #else
+                        1
+                    #endif
+                            ;
+                    return false;
+                }
+                else if (strcmp("--version", argPtr[i]) == 0)
+                {
+                    PRINT_VERSION();
                     *_exitCode = 0;
                     return false;
                 }
@@ -97,6 +122,26 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (argPtr[i][1] == 'h')
                 {
                     PRINT_HELP();
+                    *_exitCode = 0;
+                    return false;
+                }
+                else if (argPtr[i][1] == 'v' && argNum != 1)
+                {
+                    fprintf(stderr, "-v needs to be the only argument");
+                    *_exitCode =
+                    #if (defined(__WINDOWS__))
+                            10022
+                    #elif (defined(__LINUX__) || defined(__APPLE__))
+                        126
+                    #else
+                        1
+                    #endif
+                            ;
+                    return false;
+                }
+                else if (argPtr[i][1] == 'v')
+                {
+                    PRINT_VERSION();
                     *_exitCode = 0;
                     return false;
                 }
