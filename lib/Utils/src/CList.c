@@ -60,7 +60,7 @@ bool InsertElementToList(CList list, void* element)
     return true;
 }
 
-void* GetElementFromList(CList list, uint32_t position)
+inline void* GetElementFromList(CList list, uint32_t position)
 {
     if (!list)
         return 0;

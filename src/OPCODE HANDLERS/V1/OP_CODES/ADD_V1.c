@@ -3,212 +3,105 @@
 
 #include "OPCODE HANDLERS/V1.h"
 
-static bool ADD_REGISTER_NUM_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= Arg1)
-        return false;
-    uint64_t* pos = GetElementFromList(Registers, Arg1);
-    return *pos += Arg2;
+
+#define ADD_ADD_FUNC(name, type)                                                                                    \
+static bool ADD_REGISTER_NUM_ ##name (FUNCTION_ARGUMENTS)                                                           \
+{                                                                                                                   \
+    if (GetCapacityFromList(Registers) <= Arg1)                                                                     \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Registers, Arg1) += Arg2;                                                     \
+}                                                                                                                   \
+static bool ADD_REGISTER_NUM_FAST_ ##name(FUNCTION_ARGUMENTS)                                                       \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Registers, Arg1) += Arg2;                                                     \
+}                                                                                                                   \
+static bool ADD_REGISTER_REGISTER_ ##name (FUNCTION_ARGUMENTS)                                                      \
+{                                                                                                                   \
+    if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)                           \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Registers, Arg2);              \
+}                                                                                                                   \
+static bool ADD_REGISTER_REGISTER_FAST_ ##name(FUNCTION_ARGUMENTS)                                                  \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Registers, Arg2);              \
+}                                                                                                                   \
+static bool ADD_REGISTER_MEMORY_ ##name (FUNCTION_ARGUMENTS)                                                        \
+{                                                                                                                   \
+    if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)                              \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Memory, Arg2);                 \
+}                                                                                                                   \
+static bool ADD_REGISTER_MEMORY_FAST_ ##name(FUNCTION_ARGUMENTS)                                                    \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Memory, Arg2);                 \
+}                                                                                                                   \
+                                                                                                                    \
+                                                                                                                    \
+static bool ADD_MEMORY_NUM_ ##name (FUNCTION_ARGUMENTS)                                                             \
+{                                                                                                                   \
+    if (GetCapacityFromList(Memory) <= Arg1)                                                                        \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Memory, Arg1) += Arg2;                                                        \
+}                                                                                                                   \
+static bool ADD_MEMORY_NUM_FAST_ ##name(FUNCTION_ARGUMENTS)                                                         \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Memory, Arg1) += Arg2;                                                        \
+}                                                                                                                   \
+static bool ADD_MEMORY_REGISTER_ ##name (FUNCTION_ARGUMENTS)                                                        \
+{                                                                                                                   \
+    if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)                              \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Memory, Arg1) += *(type*)GetElementFromList(Registers, Arg2);                 \
+}                                                                                                                   \
+static bool ADD_MEMORY_REGISTER_FAST_ ##name(FUNCTION_ARGUMENTS)                                                    \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Memory, Arg1) += *(type*)GetElementFromList(Registers, Arg2);                 \
+}                                                                                                                   \
+static bool ADD_MEMORY_MEMORY_ ##name (FUNCTION_ARGUMENTS)                                                          \
+{                                                                                                                   \
+    if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)                                 \
+        return false;                                                                                               \
+    return *(type*)GetElementFromList(Memory, Arg1) += *(type*)GetElementFromList(Memory, Arg2);                    \
+}                                                                                                                   \
+static bool ADD_MEMORY_MEMORY_FAST_ ##name(FUNCTION_ARGUMENTS)                                                      \
+{                                                                                                                   \
+    return *(type*)GetElementFromList(Memory, Arg1) += *(type*)GetElementFromList(Memory, Arg2);                    \
 }
 
-static bool ADD_REGISTER_NUM_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Registers, Arg1) += Arg2;
-}
+#define GET_ADD_FUNCS(name)                                                                                         \
+ADD_REGISTER_NUM_ ##name ,                                                                                          \
+ADD_REGISTER_NUM_FAST_ ##name ,                                                                                     \
+ADD_REGISTER_REGISTER_ ##name ,                                                                                     \
+ADD_REGISTER_REGISTER_FAST_ ##name ,                                                                                \
+ADD_REGISTER_MEMORY_ ##name ,                                                                                       \
+ADD_REGISTER_MEMORY_FAST_ ##name ,                                                                                  \
+ADD_MEMORY_NUM_ ##name ,                                                                                            \
+ADD_MEMORY_NUM_FAST_ ##name,                                                                                        \
+ADD_MEMORY_REGISTER_ ##name,                                                                                        \
+ADD_MEMORY_REGISTER_FAST_ ##name ,                                                                                  \
+ADD_MEMORY_MEMORY_ ##name ,                                                                                         \
+ADD_MEMORY_MEMORY_FAST_ ##name                                                                                      \
 
-
-static bool ADD_REGISTER_REGISTER_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= (Arg1 < Arg2) ? Arg2 : Arg1)
-        return false;
-    uint64_t* pos1 = GetElementFromList(Registers, Arg1);
-    uint64_t* pos2 = GetElementFromList(Registers, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_REGISTER_REGISTER_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Registers, Arg1) += *(uint64_t*)GetElementFromList(Registers, Arg2);
-}
-
-
-static bool ADD_REGISTER_MEMORY_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)
-        return false;
-    uint64_t* pos1 = GetElementFromList(Registers, Arg1);
-    uint64_t* pos2 = GetElementFromList(Memory, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_REGISTER_MEMORY_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Registers, Arg1) += *(uint64_t*)GetElementFromList(Memory, Arg2);
-}
-
-
-static bool ADD_MEMORY_NUM_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= Arg1)
-        return false;
-    uint64_t* pos = GetElementFromList(Memory, Arg1);
-    return *pos += Arg2;
-}
-
-static bool ADD_MEMORY_NUM_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Memory, Arg1) += Arg2;
-}
-
-
-static bool ADD_MEMORY_REGISTER_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)
-        return false;
-    uint64_t* pos1 = GetElementFromList(Memory, Arg1);
-    uint64_t* pos2 = GetElementFromList(Registers, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_MEMORY_REGISTER_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Memory, Arg1) += *(uint64_t*)GetElementFromList(Registers, Arg2);
-}
-
-
-static bool ADD_MEMORY_MEMORY_UINT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= (Arg1 < Arg2) ? Arg2 : Arg1)
-        return false;
-    uint64_t* pos1 = GetElementFromList(Memory, Arg1);
-    uint64_t* pos2 = GetElementFromList(Memory, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_MEMORY_MEMORY_FAST_UINT64(FUNCTION_ARGUMENTS)
-{
-    return *(uint64_t*)GetElementFromList(Memory, Arg1) += *(uint64_t*)GetElementFromList(Memory, Arg2);
-}
-
-
-
-static bool ADD_REGISTER_NUM_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= Arg1)
-        return false;
-    int64_t* pos = GetElementFromList(Registers, Arg1);
-    return *pos += Arg2;
-}
-
-static bool ADD_REGISTER_NUM_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Registers, Arg1) += Arg2;
-}
-
-
-static bool ADD_REGISTER_REGISTER_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= (Arg1 < Arg2) ? Arg2 : Arg1)
-        return false;
-    int64_t* pos1 = GetElementFromList(Registers, Arg1);
-    int64_t* pos2 = GetElementFromList(Registers, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_REGISTER_REGISTER_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Registers, Arg1) += *(int64_t*)GetElementFromList(Registers, Arg2);
-}
-
-
-static bool ADD_REGISTER_MEMORY_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)
-        return false;
-    int64_t* pos1 = GetElementFromList(Registers, Arg1);
-    int64_t* pos2 = GetElementFromList(Memory, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_REGISTER_MEMORY_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Registers, Arg1) += *(int64_t*)GetElementFromList(Memory, Arg2);
-}
-
-
-static bool ADD_MEMORY_NUM_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= Arg1)
-        return false;
-    int64_t* pos = GetElementFromList(Memory, Arg1);
-    return *pos += Arg2;
-}
-
-static bool ADD_MEMORY_NUM_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Memory, Arg1) += Arg2;
-}
-
-
-static bool ADD_MEMORY_REGISTER_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)
-        return false;
-    int64_t* pos1 = GetElementFromList(Memory, Arg1);
-    int64_t* pos2 = GetElementFromList(Registers, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_MEMORY_REGISTER_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Memory, Arg1) += *(int64_t*)GetElementFromList(Registers, Arg2);
-}
-
-
-static bool ADD_MEMORY_MEMORY_INT64(FUNCTION_ARGUMENTS)
-{
-    if (GetCapacityFromList(Memory) <= (Arg1 < Arg2) ? Arg2 : Arg1)
-        return false;
-    int64_t* pos1 = GetElementFromList(Memory, Arg1);
-    int64_t* pos2 = GetElementFromList(Memory, Arg2);
-    return *pos1 += *pos2;
-}
-
-static bool ADD_MEMORY_MEMORY_FAST_INT64(FUNCTION_ARGUMENTS)
-{
-    return *(int64_t*)GetElementFromList(Memory, Arg1) += *(int64_t*)GetElementFromList(Memory, Arg2);
-}
+ADD_ADD_FUNC(UINT64, uint64_t)
+ADD_ADD_FUNC(INT64, int64_t)
+ADD_ADD_FUNC(UINT32, uint32_t)
+ADD_ADD_FUNC(INT32, uint32_t)
+ADD_ADD_FUNC(UINT16, uint16_t)
+ADD_ADD_FUNC(INT16, int16_t)
+ADD_ADD_FUNC(UINT8, uint8_t)
+ADD_ADD_FUNC(INT8, uint8_t)
 
 
 
 static bool (*ADD_MODES[])(ARGUMENT_TYPES) = {
-        ADD_REGISTER_NUM_UINT64,
-        ADD_REGISTER_REGISTER_UINT64,
-        ADD_REGISTER_MEMORY_UINT64,
-        ADD_MEMORY_NUM_UINT64,
-        ADD_MEMORY_REGISTER_UINT64,
-        ADD_MEMORY_MEMORY_UINT64,
-
-        ADD_REGISTER_NUM_FAST_UINT64,
-        ADD_REGISTER_REGISTER_FAST_UINT64,
-        ADD_REGISTER_MEMORY_FAST_UINT64,
-        ADD_MEMORY_NUM_FAST_UINT64,
-        ADD_MEMORY_REGISTER_FAST_UINT64,
-        ADD_MEMORY_MEMORY_FAST_UINT64,
-
-        ADD_REGISTER_NUM_INT64,
-        ADD_REGISTER_REGISTER_INT64,
-        ADD_REGISTER_MEMORY_INT64,
-        ADD_MEMORY_NUM_INT64,
-        ADD_MEMORY_REGISTER_INT64,
-        ADD_MEMORY_MEMORY_INT64,
-
-        ADD_REGISTER_NUM_FAST_INT64,
-        ADD_REGISTER_REGISTER_FAST_INT64,
-        ADD_REGISTER_MEMORY_FAST_INT64,
-        ADD_MEMORY_NUM_FAST_INT64,
-        ADD_MEMORY_REGISTER_FAST_INT64,
-        ADD_MEMORY_MEMORY_FAST_INT64
+        GET_ADD_FUNCS(UINT64),
+        GET_ADD_FUNCS(INT64),
+        GET_ADD_FUNCS(UINT32),
+        GET_ADD_FUNCS(INT32),
+        GET_ADD_FUNCS(UINT16),
+        GET_ADD_FUNCS(INT16),
+        GET_ADD_FUNCS(UINT8),
+        GET_ADD_FUNCS(INT8)
 };
 
 
