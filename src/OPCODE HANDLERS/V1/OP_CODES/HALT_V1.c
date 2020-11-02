@@ -48,7 +48,7 @@ bool HALT_REGISTER(FUNCTION_ARGUMENTS)
     if (!pos)
         return false;
     Arg1 = *pos;
-    return HALT_MS(Arg1, Arg2, position, Memory, Registers);
+    return HALT_MS(PASS_ARGUMENTS);
 }
 
 bool HALT_MEMORY(FUNCTION_ARGUMENTS)
@@ -57,7 +57,7 @@ bool HALT_MEMORY(FUNCTION_ARGUMENTS)
     if (!pos)
         return false;
     Arg1 = *pos;
-    return HALT_MS(Arg1, Arg2, position, Memory, Registers);
+    return HALT_MS(PASS_ARGUMENTS);
 }
 
 bool (*HALT_MODES[])(ARGUMENT_TYPES) = {

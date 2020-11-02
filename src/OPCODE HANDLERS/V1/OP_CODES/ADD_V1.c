@@ -15,6 +15,7 @@ static bool ADD_REGISTER_NUM_FAST_ ##name(FUNCTION_ARGUMENTS)                   
 {                                                                                                                   \
     return *(type*)GetElementFromList(Registers, Arg1) += Arg2;                                                     \
 }                                                                                                                   \
+                                                                                                                    \
 static bool ADD_REGISTER_REGISTER_ ##name (FUNCTION_ARGUMENTS)                                                      \
 {                                                                                                                   \
     if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)                           \
@@ -25,6 +26,7 @@ static bool ADD_REGISTER_REGISTER_FAST_ ##name(FUNCTION_ARGUMENTS)              
 {                                                                                                                   \
     return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Registers, Arg2);              \
 }                                                                                                                   \
+                                                                                                                    \
 static bool ADD_REGISTER_MEMORY_ ##name (FUNCTION_ARGUMENTS)                                                        \
 {                                                                                                                   \
     if (GetCapacityFromList(Registers) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)                              \
@@ -36,7 +38,6 @@ static bool ADD_REGISTER_MEMORY_FAST_ ##name(FUNCTION_ARGUMENTS)                
     return *(type*)GetElementFromList(Registers, Arg1) += *(type*)GetElementFromList(Memory, Arg2);                 \
 }                                                                                                                   \
                                                                                                                     \
-                                                                                                                    \
 static bool ADD_MEMORY_NUM_ ##name (FUNCTION_ARGUMENTS)                                                             \
 {                                                                                                                   \
     if (GetCapacityFromList(Memory) <= Arg1)                                                                        \
@@ -47,6 +48,7 @@ static bool ADD_MEMORY_NUM_FAST_ ##name(FUNCTION_ARGUMENTS)                     
 {                                                                                                                   \
     return *(type*)GetElementFromList(Memory, Arg1) += Arg2;                                                        \
 }                                                                                                                   \
+                                                                                                                    \
 static bool ADD_MEMORY_REGISTER_ ##name (FUNCTION_ARGUMENTS)                                                        \
 {                                                                                                                   \
     if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Registers) <= Arg2)                              \
@@ -57,6 +59,7 @@ static bool ADD_MEMORY_REGISTER_FAST_ ##name(FUNCTION_ARGUMENTS)                
 {                                                                                                                   \
     return *(type*)GetElementFromList(Memory, Arg1) += *(type*)GetElementFromList(Registers, Arg2);                 \
 }                                                                                                                   \
+                                                                                                                    \
 static bool ADD_MEMORY_MEMORY_ ##name (FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                   \
     if (GetCapacityFromList(Memory) <= Arg1 || GetCapacityFromList(Memory) <= Arg2)                                 \

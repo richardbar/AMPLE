@@ -106,52 +106,20 @@ bool HandleFile(const char* fname, int* _exitCode)
     uint64_t sizeOfFileContent;
 #if defined(__WINDOWS__)
     {
-        uint64_t fileContentSize = 2;
-        uint64_t fileContentUsed = 0;
-
-        fileContent = (uint8_t*)malloc(fileContentSize * sizeof(uint8_t));
-
-        FILE* fptr = FileOpen(fname, FILE_READ | FILE_BINARY);
+        FILE* fptr;
+        fopen_s(&fptr, fname, "rb");
         if (!fptr)
         {
             *_exitCode = 1;
             return false;
         }
+        fseek(fptr, 0, SEEK_END);
+        sizeOfFileContent = ftell(fptr);
+        fseek(fptr, 0, SEEK_SET);
 
-        int c;
-        while (true)
-        {
-            if ((c = fgetc(fptr)) != -1)
-            {
-                if (fileContentSize <= fileContentUsed + 1)
-                {
-                    uint8_t* oldFileContent = fileContent;
-                    fileContentSize *= 2;
-                    fileContent = (uint8_t*)realloc(fileContent, fileContentSize * sizeof(uint8_t));
-                    if (!fileContent)
-                    {
-                        free(oldFileContent);
-                        fclose(fptr);
-                        *_exitCode = 1;
-                        return false;
-                    }
-                }
-                fileContent[fileContentUsed++] = (uint8_t)c;
-            }
-            else
-                break;
-        }
+        fileContent = malloc(sizeOfFileContent);
+        fread(fileContent, 1, sizeOfFileContent, fptr);
         fclose(fptr);
-        fileContent[fileContentUsed++] = 0;
-        uint8_t* oldFileContent = fileContent;
-        fileContent = (uint8_t*)realloc(fileContent, fileContentUsed * sizeof(uint8_t));
-        if (!fileContent)
-        {
-            free(oldFileContent);
-            *_exitCode = 1;
-            return false;
-        }
-        sizeOfFileContent = fileContentUsed;
     }
 #elif (defined(__LINUX__) || defined(__APPLE__))
     {
@@ -227,14 +195,14 @@ bool HandleFile(const char* fname, int* _exitCode)
 #endif
 
     uint32_t startPos = 0;
-    for (int i = 0; i < sizeOfFileContent - 21; i++)
+    /*for (int i = 0; i < sizeOfFileContent - 21; i++)
     {
         if (memcmp((void *) ((uint64_t) fileContent + i), "---End of Metadata---", 21) == 0)
         {
             startPos = i + 21;
             break;
         }
-    }
+    }*/
 
     fileContent += startPos;
 
