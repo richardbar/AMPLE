@@ -7,7 +7,7 @@
 
 #include "stdAMPLE.h"
 
-#include "file.h"
+#include "File.h"
 
 #define PRINT_HELP()                                            \
     fprintf(stdout,                                             \

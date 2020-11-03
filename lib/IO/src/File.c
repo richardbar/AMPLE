@@ -1,15 +1,16 @@
-#include "file.h"
+#include "File.h"
 
-#include "../../../include/AMPLE.h"
+#include "../../../Runtime/include/AMPLE.h"
 
 #if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
 #include <stdio.h>
+#include <string.h>
 #endif
 
 bool FileExists(const char* fname)
 {
 #if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
-    FILE* fptr = fopen(fname, "r");
+    FILE* fptr = FileOpen(fname, FILE_READ);
     if (fptr)
     {
         fclose(fptr);
@@ -43,4 +44,23 @@ void* FileOpen(const char* fname, uint8_t mode)
 #else
     return NULL;
 #endif
+}
+
+void GetFileNameWithoutExtension(const char* fname, uint64_t inputSize, char* out)
+{
+    uint64_t i = inputSize - 1;
+    for (; i >= 0; i--)
+    {
+        if (fname[i] == '.')
+            break;
+        #if defined(__LINUX__) || defined(__APPLE__)
+        if (fname[i] == '/')
+        #elif defined(__WINDOWS__)
+        if (fname[i] == '\\')
+        #endif
+            i = 0;
+    }
+
+    if (i != 0)
+        memccpy(out, fname, 1, i);
 }

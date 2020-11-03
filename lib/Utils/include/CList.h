@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define CList void*
@@ -13,3 +17,7 @@ uint32_t GetSizeFromList(CList list);
 bool ContainsValueInList(CList list, void* element, bool (*comparer)(void*, void*));
 void LockCapacityList(CList list);
 void FreeList(CList list);
+
+#ifdef __cplusplus
+}
+#endif

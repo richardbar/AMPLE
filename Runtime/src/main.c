@@ -8,7 +8,7 @@
 #include "argProcessor.h"
 #include "HandleOP.h"
 
-#include "file.h"
+#include "File.h"
 #include "CList.h"
 
 #if (defined(__LINUX__) || defined(__APPLE__))
