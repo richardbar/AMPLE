@@ -12,10 +12,10 @@
 #include "CList.h"
 
 #if (defined(__LINUX__) || defined(__APPLE__))
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
+    #include <fcntl.h>
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
 #endif
 
 CList FilesToRun = NULL;
@@ -32,11 +32,6 @@ bool stringComparer(void* str1, void* str2)
 
 void HandleEnd(int _exitCode)
 {
-    fflush(stdout);
-    fflush(stderr);
-
-    putc('\n', stdout);
-
     fflush(stdout);
     fflush(stderr);
 
@@ -259,7 +254,7 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (ContainsValueInList(Flags, "printRegisters", stringComparer))
+    if (ContainsValueInList(Flags, "printRegisters", stringComparer) && Registers)
     {
         for (int i = 0; i < 8; i++)
         {
