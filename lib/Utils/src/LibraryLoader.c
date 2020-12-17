@@ -1,3 +1,7 @@
+#if defined(_MSC_VER)
+    #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -6,7 +10,6 @@
 
 #if defined(__WINDOWS__)
     #include <Shlobj.h>
-    #include <Windows.h>
 #elif defined(__LINUX__) || defined(__APPLE__)
     #include <dlfcn.h>
     #include <pwd.h>

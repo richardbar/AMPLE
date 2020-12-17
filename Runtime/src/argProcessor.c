@@ -88,6 +88,11 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                     if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
                         return false;
                 }
+                else if (strcmp("--noWaitReturn", argPtr[i]) == 0)
+                {
+                    if (!InsertElementToList(flags, "noWaitReturn"))
+                        return false;
+                }
                 else
                 {
                     fprintf(stderr, "\"%s\" argument is not recognized\n", argPtr[i]);
@@ -153,6 +158,11 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (argPtr[i][1] == 'c')
                 {
                     if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
+                        return false;
+                }
+                else if (argPtr[i][1] == 'f')
+                {
+                    if (!InsertElementToList(flags, "noWaitReturn"))
                         return false;
                 }
                 else

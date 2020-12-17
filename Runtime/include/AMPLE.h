@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #if  (  defined(_WIN32)    || \
         defined(__WIN32__) || \
         defined(__NT__)    || \
@@ -72,3 +74,8 @@
 #if (!defined(__WINDOWS__))
     #define TEXT(...) __VA_ARGS__
 #endif
+
+#define TWO_NULL NULL, NULL
+#define FOUR_NULL TWO_NULL, TWO_NULL
+#define EIGHT_NULL FOUR_NULL, FOUR_NULL
+#define SIXTEEN_NULL EIGHT_NULL, EIGHT_NULL
