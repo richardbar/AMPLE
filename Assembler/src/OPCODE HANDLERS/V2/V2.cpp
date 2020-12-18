@@ -3,7 +3,21 @@
 
 std::map<std::string, bool(*)(LINE_ARGS)> mnemonics = {
         { std::string("mov"), AssembleMOV },
-        { std::string("MOV"), AssembleMOV }
+        { std::string("MOV"), AssembleMOV },
+        { std::string("add"), AssembleADD },
+        { std::string("ADD"), AssembleADD },
+        { std::string("sub"), AssembleSUB },
+        { std::string("SUB"), AssembleSUB },
+        { std::string("mult"), AssembleMULT },
+        { std::string("MULT"), AssembleMULT },
+        { std::string("div"), AssembleDIV },
+        { std::string("DIV"), AssembleDIV },
+        { std::string("mod"), AssembleMOD },
+        { std::string("MOD"), AssembleMOD },
+        { std::string("lshift"), AssembleLSHIFT },
+        { std::string("LSHIFT"), AssembleLSHIFT },
+        { std::string("rshift"), AssembleDIV },
+        { std::string("RSHIFT"), AssembleRSHIFT }
 };
 
 bool HandleAssembly_V2(LINE_ARGS)

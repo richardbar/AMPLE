@@ -42,7 +42,7 @@ static bool CheckIfValidNumber(std::string& arguments)
     return true;
 }
 
-bool AssembleMOV(LINE_ARGS)
+bool AssembleRSHIFT(LINE_ARGS)
 {
     int numberOfArguments = atoi(tokens["numberOfTokens"].c_str());
 
@@ -71,7 +71,7 @@ bool AssembleMOV(LINE_ARGS)
 
     uint8_t* newBytes = new uint8_t[32];
     memset(newBytes, 0, 32);
-    newBytes[0] = 0x03;
+    newBytes[0] = 0x0A;
     if (CheckIfValidRegister(tokens["arg1"]))
         *((uint32_t*)&newBytes[4]) |= 0b1 << 4;
     else

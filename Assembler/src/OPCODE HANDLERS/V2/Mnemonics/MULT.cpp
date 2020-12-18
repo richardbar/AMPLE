@@ -42,7 +42,7 @@ static bool CheckIfValidNumber(std::string& arguments)
     return true;
 }
 
-bool AssembleMOV(LINE_ARGS)
+bool AssembleMULT(LINE_ARGS)
 {
     int numberOfArguments = atoi(tokens["numberOfTokens"].c_str());
 
@@ -50,7 +50,7 @@ bool AssembleMOV(LINE_ARGS)
     {
         if (MapHasKey(tokens, std::string("unprocessedLine")))
             fprintf(stderr, "%s\n", tokens["unprocessedLine"].c_str());
-        fprintf(stderr, "Line can not have %s arguments than 2", (numberOfArguments < 2) ? "fewer" : "more");
+        fprintf(stderr, "Line %d: line can not have %s arguments than 2", lineNumber, (numberOfArguments < 2) ? "fewer" : "more");
         return false;
     }
 
@@ -58,20 +58,20 @@ bool AssembleMOV(LINE_ARGS)
     {
         if (MapHasKey(tokens, std::string("unprocessedLine")))
             fprintf(stderr, "%s\n", tokens["unprocessedLine"].c_str());
-        fprintf(stderr, "\"%s\" is not a valid register or memory position", tokens["arg1"].c_str());
+        fprintf(stderr, "Line %d: \"%s\" is not a valid register or memory position", lineNumber, tokens["arg1"].c_str());
         return false;
     }
     if (!CheckIfValidRegister(tokens["arg2"]) && !CheckIfValidMemory(tokens["arg2"]) && !CheckIfValidNumber(tokens["arg2"]))
     {
         if (MapHasKey(tokens, std::string("unprocessedLine")))
             fprintf(stderr, "%s\n", tokens["unprocessedLine"].c_str());
-        fprintf(stderr, "\"%s\" is not a valid register, memory or number position", tokens["arg2"].c_str());
+        fprintf(stderr, "Line %d: \"%s\" is not a valid register, memory or number position", lineNumber, tokens["arg2"].c_str());
         return false;
     }
 
     uint8_t* newBytes = new uint8_t[32];
     memset(newBytes, 0, 32);
-    newBytes[0] = 0x03;
+    newBytes[0] = 0x06;
     if (CheckIfValidRegister(tokens["arg1"]))
         *((uint32_t*)&newBytes[4]) |= 0b1 << 4;
     else

@@ -41,9 +41,8 @@ std::string ClearLine(std::string line)
     line = (start == std::string::npos) ? "" : line.substr(0, start + 1);
 
     if (line.find_first_of('#') != std::string::npos)
-        line = line.substr(0, line.find_first_of('#') + 1);
+        line = line.substr(0, line.find_first_of('#'));
     return line;
-
 }
 
 bool AssembleInstruction(std::map<std::string, std::string>& line, std::vector<uint8_t*>& byteCode)
@@ -51,7 +50,8 @@ bool AssembleInstruction(std::map<std::string, std::string>& line, std::vector<u
     switch(atoi(line["version"].c_str()))
     {
         case 2:
-            HandleAssembly_V2(line, byteCode, atoi(line["lineNumber"].c_str()));
+            if (!HandleAssembly_V2(line, byteCode, atoi(line["lineNumber"].c_str())))
+                return false;
             break;
         default:
             return false;
@@ -67,7 +67,10 @@ bool AddLinesToCompilableLines(char* file, uint32_t fileSize, std::vector<std::m
     for (int i = 0; i < fileSize; i++)
     {
         if (file[i] == '\n')
+        {
             lines.push_back(line);
+            line = "";
+        }
         line += file[i];
     }
 
@@ -81,8 +84,8 @@ bool AddLinesToCompilableLines(char* file, uint32_t fileSize, std::vector<std::m
         tokens.insert(std::pair<std::string, std::string>(std::string("lineNumber"), std::to_string(i)));
         tokens.insert(std::pair<std::string, std::string>(std::string("mnemonic"), split(tk[0], '@')[0]));
         tokens.insert(std::pair<std::string, std::string>(std::string("version"), split(tk[0], '@')[1]));
-        for (int j = 0; j < tk.size(); j++)
-            tokens.insert(std::pair<std::string, std::string>(std::string("arg") + std::to_string(j - 1), tk[j]));
+        for (int j = 1; j < tk.size(); j++)
+            tokens.insert(std::pair<std::string, std::string>(std::string("arg") + std::to_string(j), tk[j]));
         tokens.insert(std::pair<std::string, std::string>(std::string("numberOfTokens"), std::to_string(tk.size() - 1)));
 
         compilableLines.push_back(tokens);
@@ -107,9 +110,19 @@ bool ReadFile(std::string& fileName, std::vector<std::map<std::string, std::stri
     fread(fileContent, 1, sizeOfFileContent, fptr);
     fclose(fptr);
 
-    AddLinesToCompilableLines((char*)fileContent, sizeOfFileContent, compilableLines, byteCode);
+    if (!AddLinesToCompilableLines((char*)fileContent, sizeOfFileContent, compilableLines, byteCode))
+    {
+        free(fileContent);
+        return false;
+    }
     for (int i = 0; i < compilableLines.size(); i++)
-        AssembleInstruction(compilableLines[i], byteCode);
+    {
+        if (!AssembleInstruction(compilableLines[i], byteCode))
+        {
+            free(fileContent);
+            return false;
+        }
+    }
     free(fileContent);
     return true;
 }
@@ -127,11 +140,13 @@ int main(int argc, char** argv)
     {
         if (!ReadFile(filesToAssemble[i], compilableLines, byteCode))
             return 1;
-        FILE* fptr = fopen(std::string(filesToAssemble[i] + std::string(".ample")).c_str(), "rb");
+        FILE* fptr = fopen(std::string(filesToAssemble[i] + std::string(".ample")).c_str(), "wb");
+        if (!fptr)
+            return 1;
         for (uint32_t j = 0; j < byteCode.size(); j++)
         {
             fwrite(byteCode[j], 1, 32, fptr);
-            free(byteCode[i]);
+            free(byteCode[j]);
         }
         fclose(fptr);
         byteCode.clear();
