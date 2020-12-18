@@ -259,7 +259,7 @@ int main(int argc, char** argv)
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
-                printf("%llu ", *(uint64_t*)GetElementFromList(Registers, i * 8 + j));
+                printf("%lld ", *(int64_t*)GetElementFromList(Registers, i * 8 + j));
             printf("\n");
         }
     }

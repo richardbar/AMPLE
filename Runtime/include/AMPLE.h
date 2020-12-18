@@ -75,7 +75,11 @@
     #define TEXT(...) __VA_ARGS__
 #endif
 
-#define TWO_NULL NULL, NULL
-#define FOUR_NULL TWO_NULL, TWO_NULL
-#define EIGHT_NULL FOUR_NULL, FOUR_NULL
-#define SIXTEEN_NULL EIGHT_NULL, EIGHT_NULL
+#if   ( defined(_MSC_VER) && !defined(INLINE))
+    #define INLINE inline __forceinline
+#elif ( defined(__GNUC__) && !defined(INLINE))
+    #define INLINE inline __attribute__((always_inline))
+#elif ( !defined(INLINE) )
+    #define INLINE inline
+#else
+#endif

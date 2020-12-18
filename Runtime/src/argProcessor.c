@@ -38,6 +38,21 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
         {
             if (argPtr[i][1] == '-' && sizeOfArgument > 3)
             {
+                bool hasValue = false;
+                char* argValue = NULL;
+                for (uint32_t j = 0; true; j++)
+                {
+                    if (argPtr[i][j] == '\0')
+                        break;
+                    else if (argPtr[i][j] == '=')
+                    {
+                        hasValue = true;
+                        argPtr[i][j] = '\0';
+                        argValue = &(argPtr[i][j + 1]);
+                        break;
+                    }
+                }
+
                 if (strcmp("--help", argPtr[i]) == 0 && argNum != 1)
                 {
                     fprintf(stderr, "--help needs to be the only argument");

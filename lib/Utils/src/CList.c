@@ -4,14 +4,7 @@
 
 #include "CList.h"
 
-typedef struct
-{
-    void** ptrs;
-    uint32_t size;
-    uint32_t used;
-    bool initialized;
-    bool capacityLocked;
-} ListP;
+
 
 CList InitializeList(uint32_t initialSize)
 {
