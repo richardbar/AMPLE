@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #if  (  defined(_WIN32)    || \
         defined(__WIN32__) || \
         defined(__NT__)    || \
@@ -71,4 +73,13 @@
 
 #if (!defined(__WINDOWS__))
     #define TEXT(...) __VA_ARGS__
+#endif
+
+#if   ( defined(_MSC_VER) && !defined(INLINE))
+    #define INLINE inline __forceinline
+#elif ( defined(__GNUC__) && !defined(INLINE))
+    #define INLINE inline __attribute__((always_inline))
+#elif ( !defined(INLINE) )
+    #define INLINE inline
+#else
 #endif

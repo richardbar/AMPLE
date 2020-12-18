@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(AMPLE-Runtime VERSION "0.0.3")
+project(AMPLE-Runtime VERSION "0.2.1")
 
 set(CMAKE_C_STANDARD 99)
 

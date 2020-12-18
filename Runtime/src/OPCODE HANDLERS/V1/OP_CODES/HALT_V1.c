@@ -18,7 +18,7 @@
  * @param position Int pointer of position of program
  * @return Returns true if success and false if not.
  */
-bool HALT_MIN(FUNCTION_ARGUMENTS)
+static bool HALT_MIN(FUNCTION_ARGUMENTS)
 {
     return true;
 }
@@ -29,7 +29,7 @@ bool HALT_MIN(FUNCTION_ARGUMENTS)
  * @param position Int pointer of position of program
  * @return Returns true if success and false if not.
  */
-bool HALT_MS(FUNCTION_ARGUMENTS)
+static bool HALT_MS(FUNCTION_ARGUMENTS)
 {
 #if defined(__WINDOWS__)
     Sleep(Arg1);
@@ -42,7 +42,7 @@ bool HALT_MS(FUNCTION_ARGUMENTS)
     return true;
 }
 
-bool HALT_REGISTER(FUNCTION_ARGUMENTS)
+static bool HALT_REGISTER(FUNCTION_ARGUMENTS)
 {
     uint64_t* pos = GetElementFromList(Registers, Arg1);
     if (!pos)
@@ -51,7 +51,7 @@ bool HALT_REGISTER(FUNCTION_ARGUMENTS)
     return HALT_MS(PASS_ARGUMENTS);
 }
 
-bool HALT_MEMORY(FUNCTION_ARGUMENTS)
+static bool HALT_MEMORY(FUNCTION_ARGUMENTS)
 {
     uint64_t* pos = GetElementFromList(Memory, Arg1);
     if (!pos)
@@ -60,7 +60,7 @@ bool HALT_MEMORY(FUNCTION_ARGUMENTS)
     return HALT_MS(PASS_ARGUMENTS);
 }
 
-bool (*HALT_MODES[])(ARGUMENT_TYPES) = {
+static bool (*HALT_MODES[])(ARGUMENT_TYPES) = {
         HALT_MIN,
         HALT_MS,
         HALT_REGISTER,

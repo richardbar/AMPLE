@@ -4,26 +4,26 @@
 #include "OPCODE HANDLERS/V1.h"
 
 
-bool JMP_NUM(FUNCTION_ARGUMENTS)
+static bool JMP_NUM(FUNCTION_ARGUMENTS)
 {
     return *position = Arg1 - 1;
 }
 
-bool JMP_REGISTER(FUNCTION_ARGUMENTS)
+static bool JMP_REGISTER(FUNCTION_ARGUMENTS)
 {
     uint32_t* pos = GetElementFromList(Registers, Arg1);
     if (!pos) return false;
     return *position = *pos - 1;
 }
 
-bool JMP_MEMORY(FUNCTION_ARGUMENTS)
+static bool JMP_MEMORY(FUNCTION_ARGUMENTS)
 {
     uint32_t* pos = GetElementFromList(Memory, Arg1);
     if (!pos) return false;
     return *position = *pos - 1;
 }
 
-bool (*JMP_MODES[])(ARGUMENT_TYPES) = {
+static bool (*JMP_MODES[])(ARGUMENT_TYPES) = {
         JMP_NUM,
         JMP_REGISTER,
         JMP_MEMORY

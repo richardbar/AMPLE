@@ -38,6 +38,21 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
         {
             if (argPtr[i][1] == '-' && sizeOfArgument > 3)
             {
+                bool hasValue = false;
+                char* argValue = NULL;
+                for (uint32_t j = 0; true; j++)
+                {
+                    if (argPtr[i][j] == '\0')
+                        break;
+                    else if (argPtr[i][j] == '=')
+                    {
+                        hasValue = true;
+                        argPtr[i][j] = '\0';
+                        argValue = &(argPtr[i][j + 1]);
+                        break;
+                    }
+                }
+
                 if (strcmp("--help", argPtr[i]) == 0 && argNum != 1)
                 {
                     fprintf(stderr, "--help needs to be the only argument");
@@ -86,6 +101,11 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (strcmp("--notClearMemoryAndRegisters", argPtr[i]) == 0)
                 {
                     if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
+                        return false;
+                }
+                else if (strcmp("--noWaitReturn", argPtr[i]) == 0)
+                {
+                    if (!InsertElementToList(flags, "noWaitReturn"))
                         return false;
                 }
                 else
@@ -153,6 +173,11 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (argPtr[i][1] == 'c')
                 {
                     if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
+                        return false;
+                }
+                else if (argPtr[i][1] == 'f')
+                {
+                    if (!InsertElementToList(flags, "noWaitReturn"))
                         return false;
                 }
                 else
