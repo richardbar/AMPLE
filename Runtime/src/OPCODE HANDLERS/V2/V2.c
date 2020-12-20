@@ -20,7 +20,9 @@ static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
     DIV_V2,
     MOD_V2,
     LSHIFT_V2,
-    RSHIFT_V2
+    RSHIFT_V2,
+    AND_V2,
+    OR_V2
 };
 static uint32_t NumberOfInstructions = 0;
 

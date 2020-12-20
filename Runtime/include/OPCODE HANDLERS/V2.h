@@ -26,7 +26,7 @@ static bool GLUE(name ##width, _NUM_REGISTER_N)(FUNCTION_ARGUMENTS)             
 static bool GLUE(name ##width, _REGISTER_REGISTER_N_N)(FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
-    if (sizeOfRegisters <= (Arg1 > Arg2) ? Arg1 : Arg2)                                                                             \
+    if (sizeOfRegisters <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                           \
         return false;                                                                                                               \
     return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));            \
 }                                                                                                                                   \
@@ -41,7 +41,7 @@ static bool GLUE(name ##width, _MEMORY_REGISTER_N_N)(FUNCTION_ARGUMENTS)        
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
-    if (sizeOfRegisters <= Arg1 && sizeOfMemory <= Arg2)                                                                            \
+    if ((sizeOfRegisters <= Arg1) && (sizeOfMemory <= Arg2))                                                                        \
         return false;                                                                                                               \
     return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));               \
 }                                                                                                                                   \
@@ -95,7 +95,7 @@ static bool GLUE(name ##width, _REGISTER_MEMORY_N_N)(FUNCTION_ARGUMENTS)        
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
-    if (sizeOfMemory <= Arg1 && sizeOfRegisters <= Arg2)                                                                            \
+    if ((sizeOfMemory <= Arg1) && (sizeOfRegisters <= Arg2))                                                                        \
         return false;                                                                                                               \
     return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));               \
 }                                                                                                                                   \
@@ -109,7 +109,7 @@ static bool GLUE(name ##width, _REGISTER_MEMORY_F_N)(FUNCTION_ARGUMENTS)        
 static bool GLUE(name ##width, _MEMORY_MEMORY_N_N)(FUNCTION_ARGUMENTS)                                                              \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
-    if (sizeOfMemory <= (Arg1 > Arg2) ? Arg1 : Arg2)                                                                                \
+    if (sizeOfMemory <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                              \
         return false;                                                                                                               \
     return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                  \
 }                                                                                                                                   \
@@ -162,3 +162,5 @@ bool DIV_V2(MODE_FUNCTION_ARGUMENTS);
 bool MOD_V2(MODE_FUNCTION_ARGUMENTS);
 bool LSHIFT_V2(MODE_FUNCTION_ARGUMENTS);
 bool RSHIFT_V2(MODE_FUNCTION_ARGUMENTS);
+bool AND_V2(MODE_FUNCTION_ARGUMENTS);
+bool OR_V2(MODE_FUNCTION_ARGUMENTS);

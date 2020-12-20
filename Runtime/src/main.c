@@ -213,8 +213,6 @@ bool HandleFile(const char* fname, int* _exitCode)
     if (!InitializeMemoryAndRegisters(4096, 64))
         return false;
 
-    SET_OPCODE_VERSION(1);
-
     uint32_t numberOfInstructions = (sizeOfFileContent - startPos) / INSTRUCTION_LENGTH;
 
     for (uint32_t i = 0; i < numberOfInstructions; i++)
