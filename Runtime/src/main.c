@@ -140,68 +140,24 @@ bool HandleFile(const char* fname, int* _exitCode)
     }
 #else
     {
-        uint64_t fileContentSize = 2;
-        uint64_t fileContentUsed = 0;
-
-        fileContent = (uint8_t*)malloc(fileContentSize * sizeof(uint8_t));
-
-        FILE* fptr = fopen(fname, "r");
+        FILE* fptr;
+        fopen_s(&fptr, fname, "rb");
         if (!fptr)
         {
             *_exitCode = 1;
             return false;
         }
+        fseek(fptr, 0, SEEK_END);
+        sizeOfFileContent = ftell(fptr);
+        fseek(fptr, 0, SEEK_SET);
 
-        int c;
-        while (true)
-        {
-            if ((c = fgetc(fptr)) != -1)
-            {
-                if (fileContentSize <= fileContentUsed + 1)
-                {
-                    uint8_t* oldFileContent = fileContent;
-                    fileContentSize *= 2;
-                    fileContent = (uint8_t*)realloc(fileContent, fileContentSize * sizeof(uint8_t));
-                    if (!fileContent)
-                    {
-                        free(oldFileContent);
-                        fclose(fptr);
-                        *_exitCode = 1;
-                        return false;
-                    }
-                }
-                fileContent[fileContentUsed++] = (uint8_t)c;
-            }
-            else
-                break;
-        }
+        fileContent = malloc(sizeOfFileContent);
+        fread(fileContent, 1, sizeOfFileContent, fptr);
         fclose(fptr);
-        fileContent[fileContentUsed++] = 0;
-        uint8_t* oldFileContent = fileContent;
-        fileContent = (uint8_t*)realloc(fileContent, fileContentUsed * sizeof(uint8_t));
-        if (!fileContent)
-        {
-            free(oldFileContent);
-            *_exitCode = 1;
-            return false;
-        }
-        sizeOfFileContent = fileContentUsed;
     }
 #endif
 
-    uint32_t startPos = 0;
-    /*for (int i = 0; i < sizeOfFileContent - 21; i++)
-    {
-        if (memcmp((void *) ((uint64_t) fileContent + i), "---End of Metadata---", 21) == 0)
-        {
-            startPos = i + 21;
-            break;
-        }
-    }*/
-
-    fileContent += startPos;
-
-    if ((sizeOfFileContent - startPos) % INSTRUCTION_LENGTH != 0)
+    if (sizeOfFileContent % INSTRUCTION_LENGTH != 0)
     {
         *_exitCode = 1;
 #if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))
@@ -213,11 +169,11 @@ bool HandleFile(const char* fname, int* _exitCode)
     if (!InitializeMemoryAndRegisters(4096, 64))
         return false;
 
-    uint32_t numberOfInstructions = (sizeOfFileContent - startPos) / INSTRUCTION_LENGTH;
+    uint32_t numberOfInstructions = sizeOfFileContent / INSTRUCTION_LENGTH;
 
     for (uint32_t i = 0; i < numberOfInstructions; i++)
     {
-        if (!HANDLE_OPCODE((uint8_t *) ((uint64_t) fileContent + i * INSTRUCTION_LENGTH), &i, Memory, Registers))
+        if (!HANDLE_OPCODE(*((Instruction*)((uint64_t)fileContent + i * INSTRUCTION_LENGTH)), &i, Memory, Registers))
         {
             *_exitCode = 1;
 #if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))

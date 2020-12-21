@@ -26,12 +26,11 @@ static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
 };
 static uint32_t NumberOfInstructions = 0;
 
-bool HANDLE_OPCODE_V2(const uint8_t* OP_CODE, uint32_t* poition, CList Memory, CList Registers)
+bool HANDLE_OPCODE_V2(Instruction instruction, uint32_t* poition, CList Memory, CList Registers)
 {
     if (!NumberOfInstructions)
         NumberOfInstructions = sizeof(Instructions) / sizeof(Instructions[0]);
-    uint32_t opCode = *((uint32_t*)OP_CODE);
-    if (NumberOfInstructions <= opCode)
+    if (NumberOfInstructions <= instruction.OpCode)
         return false;
-    return (Instructions[opCode]) ? Instructions[opCode](*((uint32_t*)(OP_CODE + 4)), *((uint64_t*)(OP_CODE + 8)), *((uint64_t*)(OP_CODE + 16)), *((uint64_t*)(OP_CODE + 24)), poition, Memory, Registers) : false;
+    return (Instructions[instruction.OpCode]) ? Instructions[instruction.OpCode](instruction.Mode, instruction.Arg1, instruction.Arg2, instruction.Arg3, poition, Memory, Registers) : false;
 }

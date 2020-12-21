@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CList.h"
+#include "OPCODE HANDLERS/Instruction.h"
 
 
 
@@ -152,7 +153,7 @@ static bool GLUE(name ##width, _MEMORY_MEMORY_F_F)(FUNCTION_ARGUMENTS)          
 
 
 
-bool HANDLE_OPCODE_V2(const uint8_t* OP_CODE, uint32_t* poition, CList Memory, CList Registers);
+bool HANDLE_OPCODE_V2(Instruction instruction, uint32_t* poition, CList Memory, CList Registers);
 
 bool MOV_V2(MODE_FUNCTION_ARGUMENTS);
 bool ADD_V2(MODE_FUNCTION_ARGUMENTS);
