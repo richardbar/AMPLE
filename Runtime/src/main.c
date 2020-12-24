@@ -10,6 +10,7 @@
 
 #include "File.h"
 #include "CList.h"
+#include "StringUtils.h"
 
 #if (defined(__LINUX__) || defined(__APPLE__))
     #include <fcntl.h>
@@ -25,10 +26,6 @@ uint64_t* registers = NULL;
 CList Memory = NULL;
 CList Registers = NULL;
 
-bool stringComparer(void* str1, void* str2)
-{
-    return strcmp(str1, str2) == 0;
-}
 
 void HandleEnd(int _exitCode)
 {
@@ -51,7 +48,7 @@ void HandleEnd(int _exitCode)
 
 bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
 {
-    if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", stringComparer) || !memory || !registers)
+    if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", CListFlagEqual) || !memory || !registers)
     {
         if (memory)
             free(memory);
@@ -132,7 +129,7 @@ bool HandleFile(const char* fname, int* _exitCode)
             return false;
         }
 
-        fileContent = (uint8_t *) mmap(NULL, buffer.st_size, PROT_READ, MAP_PRIVATE, file, 0);
+        fileContent = (uint8_t*)mmap(NULL, buffer.st_size, PROT_READ, MAP_PRIVATE, file, 0);
 
         close(file);
 
@@ -166,7 +163,11 @@ bool HandleFile(const char* fname, int* _exitCode)
         return false;
     }
 
-    if (!InitializeMemoryAndRegisters(4096, 64))
+    uint32_t memorySize = 4096;
+    if (Flags && ContainsValueInList(Flags, "memory", CListFlagEqual))
+        memorySize = atoi(GetCListFlagValue(Flags, "memory"));
+
+    if (!InitializeMemoryAndRegisters(memorySize, 64))
         return false;
 
     uint32_t numberOfInstructions = sizeOfFileContent / INSTRUCTION_LENGTH;
@@ -208,12 +209,12 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (ContainsValueInList(Flags, "printRegisters", stringComparer) && Registers)
+    if (ContainsValueInList(Flags, "printRegisters", CListFlagEqual) && Registers)
     {
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
-                printf("%lld ", *(int64_t*)GetElementFromList(Registers, i * 8 + j));
+                printf("%ld ", *(int64_t*)GetElementFromList(Registers, i * 8 + j));
             printf("\n");
         }
     }

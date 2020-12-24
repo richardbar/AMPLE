@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "AMPLE.h"
@@ -8,16 +9,20 @@
 #include "stdAMPLE.h"
 
 #include "File.h"
+#include "StringUtils.h"
 
 #define PRINT_HELP()                                            \
     fprintf(stdout,                                             \
-            "AMPLE Runtime\nVersion: %s\nC Version Used: C%s",  \
+            "AMPLE Runtime\n"                                   \
+            "Version: %s\n"                                     \
+            "C Version Used: C%s",                              \
             __AMPLE_VERSION__,                                  \
             __AMPLE_C_VERSION__);
 
 #define PRINT_VERSION()                                         \
     fprintf(stdout,                                             \
-        "AMPLE Runtime\nVersion: %s",                           \
+        "AMPLE Runtime\n"                                       \
+        "Version: %s",                                          \
         __AMPLE_VERSION__);
 
 bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _exitCode)
@@ -34,7 +39,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
         if (sizeOfArgument < 2)
             continue;
 
-        if (argPtr[i][0] == '-')    // Setting
+        if (argPtr[i][0] == '-')
         {
             if (argPtr[i][1] == '-' && sizeOfArgument > 3)
             {
@@ -56,15 +61,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 if (strcmp("--help", argPtr[i]) == 0 && argNum != 1)
                 {
                     fprintf(stderr, "--help needs to be the only argument");
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                        10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                        ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
                 else if (strcmp("--help", argPtr[i]) == 0)
@@ -76,15 +73,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (strcmp("--version", argPtr[i]) == 0 && argNum != 1)
                 {
                     fprintf(stderr, "--help needs to be the only argument");
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                            10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                            ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
                 else if (strcmp("--version", argPtr[i]) == 0)
@@ -95,31 +84,40 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 }
                 else if (strcmp("--printRegisters", argPtr[i]) == 0)
                 {
-                    if (!InsertElementToList(flags, "printRegisters"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "printRegisters";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else if (strcmp("--notClearMemoryAndRegisters", argPtr[i]) == 0)
                 {
-                    if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "notClearMemoryAndRegisters";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else if (strcmp("--noWaitReturn", argPtr[i]) == 0)
                 {
-                    if (!InsertElementToList(flags, "noWaitReturn"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "noWaitReturn";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
+                        return false;
+                }
+                else if (strcmp("--memory", argPtr[i]) == 0)
+                {
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "memory";
+                    flag->FlagValue = argValue;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else
                 {
                     fprintf(stderr, "\"%s\" argument is not recognized\n", argPtr[i]);
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                        10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                        ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
             }
@@ -128,15 +126,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 if (argPtr[i][1] == 'h' && argNum != 1)
                 {
                     fprintf(stderr, "-h needs to be the only argument");
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                        10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                        ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
                 else if (argPtr[i][1] == 'h')
@@ -148,15 +138,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 else if (argPtr[i][1] == 'v' && argNum != 1)
                 {
                     fprintf(stderr, "-v needs to be the only argument");
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                            10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                            ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
                 else if (argPtr[i][1] == 'v')
@@ -167,46 +149,39 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 }
                 else if (argPtr[i][1] == 'p')
                 {
-                    if (!InsertElementToList(flags, "printRegisters"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "printRegisters";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else if (argPtr[i][1] == 'c')
                 {
-                    if (!InsertElementToList(flags, "notClearMemoryAndRegisters"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "notClearMemoryAndRegisters";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else if (argPtr[i][1] == 'f')
                 {
-                    if (!InsertElementToList(flags, "noWaitReturn"))
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "noWaitReturn";
+                    flag->FlagValue = NULL;
+                    if (!InsertElementToList(flags, flag))
                         return false;
                 }
                 else
                 {
                     fprintf(stderr, "\"%s\" argument is not recognized\n", argPtr[i]);
-                    *_exitCode =
-                    #if (defined(__WINDOWS__))
-                        10022
-                    #elif (defined(__LINUX__) || defined(__APPLE__))
-                        126
-                    #else
-                        1
-                    #endif
-                        ;
+                    *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
             }
             else
             {
                 fprintf(stderr, "Argument is not recognizable");
-                *_exitCode =
-                #if (defined(__WINDOWS__))
-                    10022
-                #elif (defined(__LINUX__) || defined(__APPLE__))
-                    126
-                #else
-                    1
-                #endif
-                    ;
+                *_exitCode = INVALID_ARGUMENT;
                 return false;
             }
         }
@@ -217,18 +192,28 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
         else
         {
             fprintf(stderr, "Argument is not recognizable");
-            *_exitCode =
-            #if (defined(__WINDOWS__))
-                10022
-            #elif (defined(__LINUX__) || defined(__APPLE__))
-                126
-            #else
-                1
-            #endif
-                ;
+            *_exitCode = INVALID_ARGUMENT;
             return false;
         }
     }
 
     return true;
+}
+
+bool CListFlagEqual(void* flags, void* flagName)
+{
+    return StringEqual(((FlagStruct*)flags)->FlagName, flagName);
+}
+
+const char* GetCListFlagValue(CList flags, void* flagName)
+{
+    if (!ContainsValueInList(flags, flagName, CListFlagEqual))
+        return NULL;
+
+    for (uint32_t i = 0; i < GetSizeFromList(flags); i++)
+    {
+        if (CListFlagEqual(GetElementFromList(flags, i), flagName))
+            return ((FlagStruct*)GetElementFromList(flags, i))->FlagValue;
+    }
+    return NULL;
 }

@@ -17,7 +17,11 @@ std::map<std::string, bool(*)(LINE_ARGS)> mnemonics = {
         { std::string("lshift"), AssembleLSHIFT },
         { std::string("LSHIFT"), AssembleLSHIFT },
         { std::string("rshift"), AssembleDIV },
-        { std::string("RSHIFT"), AssembleRSHIFT }
+        { std::string("RSHIFT"), AssembleRSHIFT },
+        { std::string("and"), AssembleAND },
+        { std::string("AND"), AssembleAND },
+        { std::string("or"), AssembleOR },
+        { std::string("OR"), AssembleOR }
 };
 
 bool HandleAssembly_V2(LINE_ARGS)

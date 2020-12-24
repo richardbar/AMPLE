@@ -12,3 +12,5 @@ bool AssembleDIV(LINE_ARGS);
 bool AssembleMOD(LINE_ARGS);
 bool AssembleLSHIFT(LINE_ARGS);
 bool AssembleRSHIFT(LINE_ARGS);
+bool AssembleAND(LINE_ARGS);
+bool AssembleOR(LINE_ARGS);
