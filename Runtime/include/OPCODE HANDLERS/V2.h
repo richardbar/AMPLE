@@ -16,6 +16,143 @@
 
 
 
+#define COMPARISON_FUNCS(name, width, castType, operator)                                                                                           \
+static bool GLUE(CMP ##name ##width, _NUM_REGISTER_N)(FUNCTION_ARGUMENTS)                                                                           \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= Arg1)                                                                                                                    \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Registers, Arg1)) operator (castType)Arg2);                                                \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_REGISTER_N_N)(FUNCTION_ARGUMENTS)                                                                    \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                                           \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2)));             \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_REGISTER_F_N)(FUNCTION_ARGUMENTS)                                                                    \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= Arg1)                                                                                                                    \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2)));         \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_REGISTER_N_N)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if ((sizeOfRegisters <= Arg1) && (sizeOfMemory <= Arg2))                                                                                        \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2)));                \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_REGISTER_F_N)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= Arg1)                                                                                                                    \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2)));            \
+}                                                                                                                                                   \
+                                                                                                                                                    \
+                                                                                                                                                    \
+                                                                                                                                                    \
+static bool GLUE(CMP ##name ##width, _NUM_REGISTER_F)(FUNCTION_ARGUMENTS)                                                                           \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Registers, Arg1)) operator (castType)Arg2);                                            \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_REGISTER_N_F)(FUNCTION_ARGUMENTS)                                                                    \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= Arg2)                                                                                                                    \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2)));         \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_REGISTER_F_F)(FUNCTION_ARGUMENTS)                                                                    \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2)));     \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_REGISTER_N_F)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= Arg2)                                                                                                                       \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2)));            \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_REGISTER_F_F)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2)));        \
+}                                                                                                                                                   \
+                                                                                                                                                    \
+                                                                                                                                                    \
+                                                                                                                                                    \
+static bool GLUE(CMP ##name ##width, _NUM_MEMORY_N)(FUNCTION_ARGUMENTS)                                                                             \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= Arg1)                                                                                                                       \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Memory, Arg1)) operator (castType)Arg2);                                                   \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_MEMORY_N_N)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if ((sizeOfMemory <= Arg1) && (sizeOfRegisters <= Arg2))                                                                                        \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2)));                \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_MEMORY_F_N)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= Arg1)                                                                                                                       \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2)));            \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_MEMORY_N_N)(FUNCTION_ARGUMENTS)                                                                        \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                                              \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2)));                   \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_MEMORY_F_N)(FUNCTION_ARGUMENTS)                                                                        \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= Arg1)                                                                                                                       \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2)));               \
+}                                                                                                                                                   \
+                                                                                                                                                    \
+                                                                                                                                                    \
+                                                                                                                                                    \
+static bool GLUE(CMP ##name ##width, _NUM_MEMORY_F)(FUNCTION_ARGUMENTS)                                                                             \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Memory, Arg1)) operator (castType)Arg2);                                               \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_MEMORY_N_F)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_REGISTER();                                                                                                                       \
+    if (sizeOfRegisters <= Arg2)                                                                                                                    \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2)));            \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _REGISTER_MEMORY_F_F)(FUNCTION_ARGUMENTS)                                                                      \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2)));        \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_MEMORY_N_F)(FUNCTION_ARGUMENTS)                                                                        \
+{                                                                                                                                                   \
+    CHECK_SIZE_OF_MEMORY();                                                                                                                         \
+    if (sizeOfMemory <= Arg2)                                                                                                                       \
+        return false;                                                                                                                               \
+    return *position += (*((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2)));               \
+}                                                                                                                                                   \
+static bool GLUE(CMP ##name ##width, _MEMORY_MEMORY_F_F)(FUNCTION_ARGUMENTS)                                                                        \
+{                                                                                                                                                   \
+    return *position += (*((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2)));           \
+}
+
+
+
 #define ASSIGNMENT_FUNCS(name, width, castType, operator)                                                                           \
 static bool GLUE(name ##width, _NUM_REGISTER_N)(FUNCTION_ARGUMENTS)                                                                 \
 {                                                                                                                                   \
@@ -165,3 +302,11 @@ bool LSHIFT_V2(MODE_FUNCTION_ARGUMENTS);
 bool RSHIFT_V2(MODE_FUNCTION_ARGUMENTS);
 bool AND_V2(MODE_FUNCTION_ARGUMENTS);
 bool OR_V2(MODE_FUNCTION_ARGUMENTS);
+bool XOR_V2(MODE_FUNCTION_ARGUMENTS);
+bool NOT_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPEQ_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPNE_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPLT_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPGT_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPLE_V2(MODE_FUNCTION_ARGUMENTS);
+bool CMPGE_V2(MODE_FUNCTION_ARGUMENTS);

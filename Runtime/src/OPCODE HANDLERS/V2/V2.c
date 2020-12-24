@@ -22,7 +22,13 @@ static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
     LSHIFT_V2,
     RSHIFT_V2,
     AND_V2,
-    OR_V2
+    OR_V2,
+    XOR_V2,
+    NOT_V2,
+    CMPEQ_V2,
+    CMPNE_V2,
+    CMPLT_V2,
+    CMPGT_V2
 };
 static uint32_t NumberOfInstructions = 0;
 
