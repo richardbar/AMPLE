@@ -33,9 +33,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+      - uses: microsoft/setup-msbuild@v1
       - name: configure
-        uses: mkdir build && cd build && cmake ..
+        run: mkdir build && cd build && cmake ..
       - name: build
-        uses: cmake --build build
+        run: cmake --build build
