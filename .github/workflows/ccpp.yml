@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, Assembler ]
   pull_request:
     branches: [ main ]
 
@@ -27,3 +27,15 @@ jobs:
         run: mkdir build && cd build && cmake ..
       - name: build
         run: cmake --build build
+  
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
+      - name: configure
+        uses: mkdir build && cd build && cmake ..
+      - name: build
+        uses: cmake --build build

@@ -6,12 +6,11 @@
 #include "OPCODE HANDLERS/V2.h"
 
 extern bool CHANGE_OP_VER_V1(MODE_FUNCTION_ARGUMENTS);
-//extern bool HALT_V2(MODE_FUNCTION_ARGUMENTS);
-//extern bool JMP_V2(MODE_FUNCTION_ARGUMENTS);
+
 
 static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
     CHANGE_OP_VER_V1,
-    NULL, //HALT_V2,
+    HALT_V2,
     NULL, //JMP_V2
     MOV_V2,
     ADD_V2,
