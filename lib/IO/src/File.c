@@ -4,6 +4,7 @@
 
 #if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #endif
 
@@ -44,6 +45,26 @@ void* FileOpen(const char* fname, uint8_t mode)
 #else
     return NULL;
 #endif
+}
+
+void FileClose(void* file)
+{
+    fclose(file);
+}
+
+uint32_t FileReadWholeFile(void* file, uint8_t** ptr)
+{
+    if (!file)
+        return 0;
+
+    fseek(file, 0, SEEK_END);
+    uint32_t sizeOfFileContent = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    *ptr = malloc(sizeOfFileContent);
+    fread(*ptr, 1, sizeOfFileContent, file);
+
+    return sizeOfFileContent;
 }
 
 void GetFileNameWithoutExtension(const char* fname, uint64_t inputSize, char* out)

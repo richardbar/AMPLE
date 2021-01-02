@@ -14,6 +14,8 @@ extern "C" {
 
 bool FileExists(const char* fname);
 void* FileOpen(const char* fname, uint8_t mode);
+void FileClose(void* file);
+uint32_t FileReadWholeFile(void* file, uint8_t** ptr);
 void GetFileNameWithoutExtension(const char* fname, uint64_t inputSize, char* out);
 
 #ifdef __cplusplus

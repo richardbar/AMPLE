@@ -6,10 +6,11 @@
 
 #include "AMPLE.h"
 #include "argProcessor.h"
-#include "HandleOP.h"
+#include "Execution.h"
 
 #include "File.h"
 #include "CList.h"
+#include "CStack.h"
 #include "StringUtils.h"
 
 #if (defined(__LINUX__) || defined(__APPLE__))
@@ -26,6 +27,7 @@ uint64_t* registers = NULL;
 CList Memory = NULL;
 CList Registers = NULL;
 
+extern CStack ExecutionStack;
 
 void HandleEnd(int _exitCode)
 {
@@ -42,6 +44,7 @@ void HandleEnd(int _exitCode)
 
     FreeList(Memory);
     FreeList(Registers);
+    FreeStack(ExecutionStack);
 
     exit(_exitCode);
 }
@@ -94,72 +97,17 @@ bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
 
 bool HandleFile(const char* fname, int* _exitCode)
 {
-    uint8_t *fileContent;
+    uint8_t* fileContent;
     uint64_t sizeOfFileContent;
-#if defined(__WINDOWS__)
-    {
-        FILE* fptr;
-        fopen_s(&fptr, fname, "rb");
-        if (!fptr)
-        {
-            *_exitCode = 1;
-            return false;
-        }
-        fseek(fptr, 0, SEEK_END);
-        sizeOfFileContent = ftell(fptr);
-        fseek(fptr, 0, SEEK_SET);
 
-        fileContent = malloc(sizeOfFileContent);
-        fread(fileContent, 1, sizeOfFileContent, fptr);
-        fclose(fptr);
-    }
-#elif (defined(__LINUX__) || defined(__APPLE__))
-    {
-        int file = open(fname, O_RDONLY);
-        if (file == -1) {
-            *_exitCode = 1;
-            return false;
-        }
-
-        struct stat buffer;
-        int status;
-        status = stat(fname, &buffer);
-        if (status) {
-            *_exitCode = 1;
-            return false;
-        }
-
-        fileContent = (uint8_t*)mmap(NULL, buffer.st_size, PROT_READ, MAP_PRIVATE, file, 0);
-
-        close(file);
-
-        sizeOfFileContent = buffer.st_size;
-    }
-#else
-    {
-        FILE* fptr;
-        fopen_s(&fptr, fname, "rb");
-        if (!fptr)
-        {
-            *_exitCode = 1;
-            return false;
-        }
-        fseek(fptr, 0, SEEK_END);
-        sizeOfFileContent = ftell(fptr);
-        fseek(fptr, 0, SEEK_SET);
-
-        fileContent = malloc(sizeOfFileContent);
-        fread(fileContent, 1, sizeOfFileContent, fptr);
-        fclose(fptr);
-    }
-#endif
+    FILE* fptr = FileOpen(fname, FILE_READ | FILE_BINARY);
+    sizeOfFileContent = FileReadWholeFile(fptr, &fileContent);
+    FileClose(fptr);
 
     if (sizeOfFileContent % INSTRUCTION_LENGTH != 0)
     {
         *_exitCode = 1;
-#if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))
         free(fileContent);
-#endif
         return false;
     }
 
@@ -171,19 +119,22 @@ bool HandleFile(const char* fname, int* _exitCode)
         return false;
 
     uint32_t numberOfInstructions = sizeOfFileContent / INSTRUCTION_LENGTH;
+    struct ExecutionStruct* run = (struct ExecutionStruct*)malloc(sizeof(struct ExecutionStruct));
+    run->ByteCode = fileContent;
+    run->Position = 0;
+    run->Size = numberOfInstructions;
 
-    for (uint32_t i = 0; i < numberOfInstructions; i++)
+    ExecutionStack = InitializeStack(1024);
+
+    if (!Execute(ExecutionStack, Memory, Registers))
     {
-        if (!HANDLE_OPCODE(*((Instruction*)((uint64_t)fileContent + i * INSTRUCTION_LENGTH)), &i, Memory, Registers))
-        {
-            *_exitCode = 1;
-#if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))
-            free(fileContent);
-#endif
-            return false;
-        }
+        *_exitCode = 1;
+        free(fileContent);
+        return false;
     }
 
+    free(fileContent);
+    free(run);
     return true;
 }
 
