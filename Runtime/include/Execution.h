@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
-
-#include "CStack.h"
+#include <stdint.h>
+#include <CList.h>
 
 struct ExecutionStruct
 {
@@ -11,4 +11,4 @@ struct ExecutionStruct
     uint32_t Size;
 };
 
-bool Execute(struct ExecutionStruct* byteCode, CList Memory, CList Registers);
+bool Execute(CList Memory, CList Registers);

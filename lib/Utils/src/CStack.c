@@ -3,25 +3,24 @@
 #include <string.h>
 
 #include "CStack.h"
-#include "CList.h"
 
-CStack InitializeStack(uint32_t initialSize)
+CStack InitializeStack()
 {
-    if (initialSize == 0)
-        initialSize = 1;
-
     StackP* stackToBeReturned = (StackP*)malloc(sizeof(StackP*));
     if (!stackToBeReturned)
         return NULL;
 
-    stackToBeReturned->ptrs = (void*)malloc(initialSize * sizeof(void*));
+    stackToBeReturned->ptrs = (void**)malloc(sizeof(void*));
     if (!stackToBeReturned->ptrs)
     {
-        free(stackToBeReturned);
+        free(stackToBeReturned->ptrs);
         return NULL;
     }
-    stackToBeReturned->size = initialSize;
+    stackToBeReturned->size = 1;
     stackToBeReturned->top = 0;
+    stackToBeReturned->ptrs[0] = NULL;
+
+    return (CStack)stackToBeReturned;
 }
 
 bool InsertElementToStack(CStack stack, void* element)
@@ -32,13 +31,9 @@ bool InsertElementToStack(CStack stack, void* element)
     StackP* stck = (StackP*)stack;
     if (stck->top >= stck->size)
     {
-        void** oldPtr = stck->ptrs;
         stck->ptrs = (void**)realloc(stck->ptrs, stck->size * 2 * sizeof(void*));
         if (!stck->ptrs)
-        {
-            stck->ptrs = oldPtr;
             return false;
-        }
         stck->size *= 2;
     }
 
@@ -51,8 +46,9 @@ bool RemoveElementFromStack(CStack stack)
     if (!stack)
         return false;
 
-    StackP * stck = (StackP*)stack;
+    StackP* stck = (StackP*)stack;
     stck->top--;
+    return true;
 }
 
 void* GetElementFromStack(CStack stack)
@@ -60,8 +56,8 @@ void* GetElementFromStack(CStack stack)
     if (!stack)
         return NULL;
 
-    StackP * stck = (StackP*)stack;
-    return stck->ptrs[stck->top];
+    StackP* stck = (StackP*)stack;
+    return stck->ptrs[stck->top - 1];
 }
 
 void FreeStack(CStack stack)

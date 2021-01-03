@@ -11,8 +11,6 @@ extern "C" {
 
 #include "../../../Runtime/include/AMPLE.h"
 
-#include "CList.h"
-
 typedef struct
 {
     uint32_t size;
@@ -22,12 +20,16 @@ typedef struct
 
 #define CStack void*
 
-CStack InitializeStack(uint32_t initialSize);
+CStack InitializeStack();
 
 bool InsertElementToStack(CStack stack, void* element);
 bool RemoveElementFromStack(CStack stack);
 
 void* GetElementFromStack(CStack stack);
+INLINE void* FastGetElementFromStack(CStack stack)
+{
+    return ((StackP*)stack)->ptrs[((StackP*)stack)->top - 1];
+}
 
 void FreeStack(CStack stack);
 

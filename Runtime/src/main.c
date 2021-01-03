@@ -2,23 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "main.h"
-
-#include "AMPLE.h"
 #include "argProcessor.h"
 #include "Execution.h"
+#include "main.h"
 
 #include "File.h"
 #include "CList.h"
 #include "CStack.h"
 #include "StringUtils.h"
 
-#if (defined(__LINUX__) || defined(__APPLE__))
-    #include <fcntl.h>
-    #include <sys/mman.h>
-    #include <sys/stat.h>
-    #include <unistd.h>
-#endif
 
 CList FilesToRun = NULL;
 CList Flags = NULL;
@@ -124,11 +116,13 @@ bool HandleFile(const char* fname, int* _exitCode)
     run->Position = 0;
     run->Size = numberOfInstructions;
 
-    ExecutionStack = InitializeStack(1024);
+    ExecutionStack = InitializeStack();
+    InsertElementToStack(ExecutionStack, run);
 
-    if (!Execute(ExecutionStack, Memory, Registers))
+    if (!Execute(Memory, Registers))
     {
         *_exitCode = 1;
+        free(run);
         free(fileContent);
         return false;
     }
@@ -165,10 +159,18 @@ int main(int argc, char** argv)
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
-                printf("%ld ", *(int64_t*)GetElementFromList(Registers, i * 8 + j));
+            {
+                int64_t* regPtr = (int64_t*)GetElementFromList(Registers, i * 8 + j);
+                if (!regPtr)
+                {
+                    printf("Error while printing registers\n");
+                    return 1;
+                }
+                printf("%ld ", *regPtr);
+            }
             printf("\n");
         }
     }
 
-    HandleEnd(exitCode);
+    HandleEnd((exitCode != 0) ? exitCode : *((int*)FastGetElementFromList(Registers, 0)));
 }

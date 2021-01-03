@@ -27,7 +27,11 @@ static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
     CMPEQ_V2,
     CMPNE_V2,
     CMPLT_V2,
-    CMPGT_V2
+    CMPGT_V2,
+    CMPLE_V2,
+    CMPGE_V2,
+    CALL_V2,
+    RET_V2
 };
 static uint32_t NumberOfInstructions = 0;
 
