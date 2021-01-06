@@ -30,42 +30,42 @@ static bool (*MULT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    MULT8_NUM_REGISTER_N,                                               // 0b0000001010
+    MULT8_NUM_REGISTER_F,                                               // 0b0000001011
+    MULT8_NUM_MEMORY_N,                                                 // 0b0000001100
+    MULT8_NUM_MEMORY_F,                                                 // 0b0000001101
     NULL,
     NULL,
     NULL,
     NULL,
+    MULT8_REGISTER_REGISTER_N_N,                                        // 0b0000010010
+    MULT8_REGISTER_REGISTER_N_F,                                        // 0b0000010011
+    MULT8_REGISTER_MEMORY_N_N,                                          // 0b0000010100
+    MULT8_REGISTER_MEMORY_N_F,                                          // 0b0000010101
     NULL,
     NULL,
     NULL,
-    MULT8_NUM_REGISTER_N,                                                // 0b0000010001
-    MULT8_REGISTER_REGISTER_N_N,                                         // 0b0000010010
-    MULT8_REGISTER_REGISTER_F_N,                                         // 0b0000010011
-    MULT8_MEMORY_REGISTER_N_N,                                           // 0b0000010100
-    MULT8_MEMORY_REGISTER_F_N,                                           // 0b0000010101
     NULL,
+    MULT8_REGISTER_REGISTER_F_N,                                        // 0b0000011010
+    MULT8_REGISTER_REGISTER_F_F,                                        // 0b0000011011
+    MULT8_REGISTER_MEMORY_F_N,                                          // 0b0000011100
+    MULT8_REGISTER_MEMORY_F_F,                                          // 0b0000011101
     NULL,
     NULL,
-    MULT8_NUM_REGISTER_F,                                                // 0b0000011001
-    MULT8_REGISTER_REGISTER_N_F,                                         // 0b0000011010
-    MULT8_REGISTER_REGISTER_F_F,                                         // 0b0000011011
-    MULT8_MEMORY_REGISTER_N_F,                                           // 0b0000011100
-    MULT8_MEMORY_REGISTER_F_F,                                           // 0b0000011101
     NULL,
     NULL,
+    MULT8_MEMORY_REGISTER_N_N,                                          // 0b0000100010
+    MULT8_MEMORY_REGISTER_N_F,                                          // 0b0000100011
+    MULT8_MEMORY_MEMORY_N_N,                                            // 0b0000100100
+    MULT8_MEMORY_MEMORY_N_F,                                            // 0b0000100101
     NULL,
-    MULT8_NUM_MEMORY_N,                                                  // 0b0000100001
-    MULT8_REGISTER_MEMORY_N_N,                                           // 0b0000100010
-    MULT8_REGISTER_MEMORY_F_N,                                           // 0b0000100011
-    MULT8_MEMORY_MEMORY_N_N,                                             // 0b0000100100
-    MULT8_MEMORY_MEMORY_F_N,                                             // 0b0000100101
     NULL,
     NULL,
     NULL,
-    MULT8_NUM_MEMORY_F,                                                  // 0b0000101001
-    MULT8_REGISTER_MEMORY_N_F,                                           // 0b0000101000
-    MULT8_REGISTER_MEMORY_F_F,                                           // 0b0000101011
-    MULT8_MEMORY_MEMORY_N_F,                                             // 0b0000101100
-    MULT8_MEMORY_MEMORY_F_F,                                             // 0b0000101101
+    MULT8_MEMORY_REGISTER_F_N,                                          // 0b0000101010
+    MULT8_MEMORY_MEMORY_F_F,                                            // 0b0000101011
+    MULT8_MEMORY_MEMORY_N_N,                                            // 0b0000101100
+    MULT8_MEMORY_MEMORY_F_F,                                            // 0b0000101101
     NULL,
     NULL,
     NULL,
@@ -94,42 +94,42 @@ static bool (*MULT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    MULT16_NUM_REGISTER_N,                                              // 0b0001001010
+    MULT16_NUM_REGISTER_F,                                              // 0b0001001011
+    MULT16_NUM_MEMORY_N,                                                // 0b0001001100
+    MULT16_NUM_MEMORY_F,                                                // 0b0001001101
     NULL,
     NULL,
     NULL,
     NULL,
+    MULT16_REGISTER_REGISTER_N_N,                                       // 0b0001010010
+    MULT16_REGISTER_REGISTER_N_F,                                       // 0b0001010011
+    MULT16_REGISTER_MEMORY_N_N,                                         // 0b0001010100
+    MULT16_REGISTER_MEMORY_N_F,                                         // 0b0001010101
     NULL,
     NULL,
     NULL,
-    MULT16_NUM_REGISTER_N,                                               // 0b0001010001
-    MULT16_REGISTER_REGISTER_N_N,                                        // 0b0001010010
-    MULT16_REGISTER_REGISTER_F_N,                                        // 0b0001010011
-    MULT16_MEMORY_REGISTER_N_N,                                          // 0b0001010100
-    MULT16_MEMORY_REGISTER_F_N,                                          // 0b0001010101
     NULL,
+    MULT16_REGISTER_REGISTER_F_N,                                       // 0b0001011010
+    MULT16_REGISTER_REGISTER_F_F,                                       // 0b0001011011
+    MULT16_REGISTER_MEMORY_F_N,                                         // 0b0001011100
+    MULT16_REGISTER_MEMORY_F_F,                                         // 0b0001011101
     NULL,
     NULL,
-    MULT16_NUM_REGISTER_F,                                               // 0b0001011001
-    MULT16_REGISTER_REGISTER_N_F,                                        // 0b0001011010
-    MULT16_REGISTER_REGISTER_F_F,                                        // 0b0001011011
-    MULT16_MEMORY_REGISTER_N_F,                                          // 0b0001011100
-    MULT16_MEMORY_REGISTER_F_F,                                          // 0b0001011101
     NULL,
     NULL,
+    MULT16_MEMORY_REGISTER_N_N,                                         // 0b0001100010
+    MULT16_MEMORY_REGISTER_N_F,                                         // 0b0001100011
+    MULT16_MEMORY_MEMORY_N_N,                                           // 0b0001100100
+    MULT16_MEMORY_MEMORY_N_F,                                           // 0b0001100101
     NULL,
-    MULT16_NUM_MEMORY_N,                                                 // 0b0001100001
-    MULT16_REGISTER_MEMORY_N_N,                                          // 0b0001100010
-    MULT16_REGISTER_MEMORY_F_N,                                          // 0b0001100011
-    MULT16_MEMORY_MEMORY_N_N,                                            // 0b0001100100
-    MULT16_MEMORY_MEMORY_F_N,                                            // 0b0001100101
     NULL,
     NULL,
     NULL,
-    MULT16_NUM_MEMORY_F,                                                 // 0b0001101001
-    MULT16_REGISTER_MEMORY_N_F,                                          // 0b0001101000
-    MULT16_REGISTER_MEMORY_F_F,                                          // 0b0001101011
-    MULT16_MEMORY_MEMORY_N_F,                                            // 0b0001101100
-    MULT16_MEMORY_MEMORY_F_F,                                            // 0b0001101101
+    MULT16_MEMORY_REGISTER_F_N,                                         // 0b0001101010
+    MULT16_MEMORY_MEMORY_F_F,                                           // 0b0001101011
+    MULT16_MEMORY_MEMORY_N_N,                                           // 0b0001101100
+    MULT16_MEMORY_MEMORY_F_F,                                           // 0b0001101101
     NULL,
     NULL,
     NULL,
@@ -158,42 +158,42 @@ static bool (*MULT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    MULT32_NUM_REGISTER_N,                                              // 0b0010001010
+    MULT32_NUM_REGISTER_F,                                              // 0b0010001011
+    MULT32_NUM_MEMORY_N,                                                // 0b0010001100
+    MULT32_NUM_MEMORY_F,                                                // 0b0010001101
     NULL,
     NULL,
     NULL,
     NULL,
+    MULT32_REGISTER_REGISTER_N_N,                                       // 0b0010010010
+    MULT32_REGISTER_REGISTER_N_F,                                       // 0b0010010011
+    MULT32_REGISTER_MEMORY_N_N,                                         // 0b0010010100
+    MULT32_REGISTER_MEMORY_N_F,                                         // 0b0010010101
     NULL,
     NULL,
     NULL,
-    MULT32_NUM_REGISTER_N,                                               // 0b0010010001
-    MULT32_REGISTER_REGISTER_N_N,                                        // 0b0010010010
-    MULT32_REGISTER_REGISTER_F_N,                                        // 0b0010010011
-    MULT32_MEMORY_REGISTER_N_N,                                          // 0b0010010100
-    MULT32_MEMORY_REGISTER_F_N,                                          // 0b0010010101
     NULL,
+    MULT32_REGISTER_REGISTER_F_N,                                       // 0b0010011010
+    MULT32_REGISTER_REGISTER_F_F,                                       // 0b0010011011
+    MULT32_REGISTER_MEMORY_F_N,                                         // 0b0010011100
+    MULT32_REGISTER_MEMORY_F_F,                                         // 0b0010011101
     NULL,
     NULL,
-    MULT32_NUM_REGISTER_F,                                               // 0b0010011001
-    MULT32_REGISTER_REGISTER_N_F,                                        // 0b0010011010
-    MULT32_REGISTER_REGISTER_F_F,                                        // 0b0010011011
-    MULT32_MEMORY_REGISTER_N_F,                                          // 0b0010011100
-    MULT32_MEMORY_REGISTER_F_F,                                          // 0b0010011101
     NULL,
     NULL,
+    MULT32_MEMORY_REGISTER_N_N,                                         // 0b0010100010
+    MULT32_MEMORY_REGISTER_N_F,                                         // 0b0010100011
+    MULT32_MEMORY_MEMORY_N_N,                                           // 0b0010100100
+    MULT32_MEMORY_MEMORY_N_F,                                           // 0b0010100101
     NULL,
-    MULT32_NUM_MEMORY_N,                                                 // 0b0010100001
-    MULT32_REGISTER_MEMORY_N_N,                                          // 0b0010100010
-    MULT32_REGISTER_MEMORY_F_N,                                          // 0b0010100011
-    MULT32_MEMORY_MEMORY_N_N,                                            // 0b0010100100
-    MULT32_MEMORY_MEMORY_F_N,                                            // 0b0010100101
     NULL,
     NULL,
     NULL,
-    MULT32_NUM_MEMORY_F,                                                 // 0b0010101001
-    MULT32_REGISTER_MEMORY_N_F,                                          // 0b0010101000
-    MULT32_REGISTER_MEMORY_F_F,                                          // 0b0010101011
-    MULT32_MEMORY_MEMORY_N_F,                                            // 0b0010101100
-    MULT32_MEMORY_MEMORY_F_F,                                            // 0b0010101101
+    MULT32_MEMORY_REGISTER_F_N,                                         // 0b0010101010
+    MULT32_MEMORY_MEMORY_F_F,                                           // 0b0010101011
+    MULT32_MEMORY_MEMORY_N_N,                                           // 0b0010101100
+    MULT32_MEMORY_MEMORY_F_F,                                           // 0b0010101101
     NULL,
     NULL,
     NULL,
@@ -286,42 +286,42 @@ static bool (*MULT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    MULT64_NUM_REGISTER_N,                                              // 0b0100001010
+    MULT64_NUM_REGISTER_F,                                              // 0b0100001011
+    MULT64_NUM_MEMORY_N,                                                // 0b0100001100
+    MULT64_NUM_MEMORY_F,                                                // 0b0100001101
     NULL,
     NULL,
     NULL,
     NULL,
+    MULT64_REGISTER_REGISTER_N_N,                                       // 0b0100010010
+    MULT64_REGISTER_REGISTER_N_F,                                       // 0b0100010011
+    MULT64_REGISTER_MEMORY_N_N,                                         // 0b0100010100
+    MULT64_REGISTER_MEMORY_N_F,                                         // 0b0100010101
     NULL,
     NULL,
     NULL,
-    MULT64_NUM_REGISTER_N,                                               // 0b0100010001
-    MULT64_REGISTER_REGISTER_N_N,                                        // 0b0100010010
-    MULT64_REGISTER_REGISTER_F_N,                                        // 0b0100010011
-    MULT64_MEMORY_REGISTER_N_N,                                          // 0b0100010100
-    MULT64_MEMORY_REGISTER_F_N,                                          // 0b0100010101
     NULL,
+    MULT64_REGISTER_REGISTER_F_N,                                       // 0b0100011010
+    MULT64_REGISTER_REGISTER_F_F,                                       // 0b0100011011
+    MULT64_REGISTER_MEMORY_F_N,                                         // 0b0100011100
+    MULT64_REGISTER_MEMORY_F_F,                                         // 0b0100011101
     NULL,
     NULL,
-    MULT64_NUM_REGISTER_F,                                               // 0b0100011001
-    MULT64_REGISTER_REGISTER_N_F,                                        // 0b0100011010
-    MULT64_REGISTER_REGISTER_F_F,                                        // 0b0100011011
-    MULT64_MEMORY_REGISTER_N_F,                                          // 0b0100011100
-    MULT64_MEMORY_REGISTER_F_F,                                          // 0b0100011101
     NULL,
     NULL,
+    MULT64_MEMORY_REGISTER_N_N,                                         // 0b0100100010
+    MULT64_MEMORY_REGISTER_N_F,                                         // 0b0100100011
+    MULT64_MEMORY_MEMORY_N_N,                                           // 0b0100100100
+    MULT64_MEMORY_MEMORY_N_F,                                           // 0b0100100101
     NULL,
-    MULT64_NUM_MEMORY_N,                                                 // 0b0100100001
-    MULT64_REGISTER_MEMORY_N_N,                                          // 0b0100100010
-    MULT64_REGISTER_MEMORY_F_N,                                          // 0b0100100011
-    MULT64_MEMORY_MEMORY_N_N,                                            // 0b0100100100
-    MULT64_MEMORY_MEMORY_F_N,                                            // 0b0100100101
     NULL,
     NULL,
     NULL,
-    MULT64_NUM_MEMORY_F,                                                 // 0b1000101001
-    MULT64_REGISTER_MEMORY_N_F,                                          // 0b1000101000
-    MULT64_REGISTER_MEMORY_F_F,                                          // 0b1000101011
-    MULT64_MEMORY_MEMORY_N_F,                                            // 0b0100101100
-    MULT64_MEMORY_MEMORY_F_F,                                            // 0b0100101101
+    MULT64_MEMORY_REGISTER_F_N,                                         // 0b0100101010
+    MULT64_MEMORY_MEMORY_F_F,                                           // 0b0100101011
+    MULT64_MEMORY_MEMORY_N_N,                                           // 0b0100101100
+    MULT64_MEMORY_MEMORY_F_F,                                           // 0b0100101101
 };
 
 

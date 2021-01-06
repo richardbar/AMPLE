@@ -67,6 +67,9 @@ void FreeStack(CStack stack)
 
     StackP* stck = (StackP*)stack;
     if (stck->ptrs)
+    {
         free(stck->ptrs);
+        stck->ptrs = NULL;
+    }
     free(stck);
 }

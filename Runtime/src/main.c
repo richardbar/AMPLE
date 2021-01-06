@@ -1,3 +1,6 @@
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,13 +33,18 @@ void HandleEnd(int _exitCode)
     FreeList(Flags);
 
     if (memory)
+    {
         free(memory);
+        memory = NULL;
+    }
     if (registers)
+    {
         free(registers);
+        registers = NULL;
+    }
 
     FreeList(Memory);
     FreeList(Registers);
-    FreeStack(ExecutionStack);
 
     exit(_exitCode);
 }
@@ -46,9 +54,15 @@ bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
     if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", CListFlagEqual) || !memory || !registers)
     {
         if (memory)
+        {
             free(memory);
+            memory = NULL;
+        }
         if (registers)
+        {
             free(registers);
+            registers = NULL;
+        }
 
         memory = (uint8_t*)malloc(memorySize);
         if (!memory)
@@ -100,6 +114,7 @@ bool HandleFile(const char* fname, int* _exitCode)
     {
         *_exitCode = 1;
         free(fileContent);
+        fileContent = NULL;
         return false;
     }
 
@@ -122,13 +137,29 @@ bool HandleFile(const char* fname, int* _exitCode)
     if (!Execute(Memory, Registers))
     {
         *_exitCode = 1;
-        free(run);
-        free(fileContent);
+        if (run)
+        {
+            free(run);
+            run = NULL;
+        }
+        if (fileContent)
+        {
+            free(fileContent);
+            fileContent = NULL;
+        }
         return false;
     }
 
-    free(fileContent);
-    free(run);
+    if (run)
+    {
+        free(run);
+        run = NULL;
+    }
+    if (fileContent)
+    {
+        free(fileContent);
+        fileContent = NULL;
+    }
     return true;
 }
 
@@ -166,7 +197,7 @@ int main(int argc, char** argv)
                     printf("Error while printing registers\n");
                     return 1;
                 }
-                printf("%ld ", *regPtr);
+                printf("%"PRId64" ", *regPtr);
             }
             printf("\n");
         }

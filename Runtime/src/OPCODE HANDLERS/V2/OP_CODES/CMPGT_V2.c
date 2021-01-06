@@ -29,42 +29,42 @@ static bool (*CMPGT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    CMPGT8_NUM_REGISTER_N,                                              // 0b0000001010
+    CMPGT8_NUM_REGISTER_F,                                              // 0b0000001011
+    CMPGT8_NUM_MEMORY_N,                                                // 0b0000001100
+    CMPGT8_NUM_MEMORY_F,                                                // 0b0000001101
     NULL,
     NULL,
     NULL,
     NULL,
+    CMPGT8_REGISTER_REGISTER_N_N,                                       // 0b0000010010
+    CMPGT8_REGISTER_REGISTER_N_F,                                       // 0b0000010011
+    CMPGT8_REGISTER_MEMORY_N_N,                                         // 0b0000010100
+    CMPGT8_REGISTER_MEMORY_N_F,                                         // 0b0000010101
     NULL,
     NULL,
     NULL,
-    CMPGT8_NUM_REGISTER_N,                                                // 0b0000010001
-    CMPGT8_REGISTER_REGISTER_N_N,                                         // 0b0000010010
-    CMPGT8_REGISTER_REGISTER_F_N,                                         // 0b0000010011
-    CMPGT8_MEMORY_REGISTER_N_N,                                           // 0b0000010100
-    CMPGT8_MEMORY_REGISTER_F_N,                                           // 0b0000010101
     NULL,
+    CMPGT8_REGISTER_REGISTER_F_N,                                       // 0b0000011010
+    CMPGT8_REGISTER_REGISTER_F_F,                                       // 0b0000011011
+    CMPGT8_REGISTER_MEMORY_F_N,                                         // 0b0000011100
+    CMPGT8_REGISTER_MEMORY_F_F,                                         // 0b0000011101
     NULL,
     NULL,
-    CMPGT8_NUM_REGISTER_F,                                                // 0b0000011001
-    CMPGT8_REGISTER_REGISTER_N_F,                                         // 0b0000011010
-    CMPGT8_REGISTER_REGISTER_F_F,                                         // 0b0000011011
-    CMPGT8_MEMORY_REGISTER_N_F,                                           // 0b0000011100
-    CMPGT8_MEMORY_REGISTER_F_F,                                           // 0b0000011101
     NULL,
     NULL,
+    CMPGT8_MEMORY_REGISTER_N_N,                                         // 0b0000100010
+    CMPGT8_MEMORY_REGISTER_N_F,                                         // 0b0000100011
+    CMPGT8_MEMORY_MEMORY_N_N,                                           // 0b0000100100
+    CMPGT8_MEMORY_MEMORY_N_F,                                           // 0b0000100101
     NULL,
-    CMPGT8_NUM_MEMORY_N,                                                  // 0b0000100001
-    CMPGT8_REGISTER_MEMORY_N_N,                                           // 0b0000100010
-    CMPGT8_REGISTER_MEMORY_F_N,                                           // 0b0000100011
-    CMPGT8_MEMORY_MEMORY_N_N,                                             // 0b0000100100
-    CMPGT8_MEMORY_MEMORY_F_N,                                             // 0b0000100101
     NULL,
     NULL,
     NULL,
-    CMPGT8_NUM_MEMORY_F,                                                  // 0b0000101001
-    CMPGT8_REGISTER_MEMORY_N_F,                                           // 0b0000101000
-    CMPGT8_REGISTER_MEMORY_F_F,                                           // 0b0000101011
-    CMPGT8_MEMORY_MEMORY_N_F,                                             // 0b0000101100
-    CMPGT8_MEMORY_MEMORY_F_F,                                             // 0b0000101101
+    CMPGT8_MEMORY_REGISTER_F_N,                                         // 0b0000101010
+    CMPGT8_MEMORY_MEMORY_F_F,                                           // 0b0000101011
+    CMPGT8_MEMORY_MEMORY_N_N,                                           // 0b0000101100
+    CMPGT8_MEMORY_MEMORY_F_F,                                           // 0b0000101101
     NULL,
     NULL,
     NULL,
@@ -93,42 +93,42 @@ static bool (*CMPGT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    CMPGT16_NUM_REGISTER_N,                                             // 0b0001001010
+    CMPGT16_NUM_REGISTER_F,                                             // 0b0001001011
+    CMPGT16_NUM_MEMORY_N,                                               // 0b0001001100
+    CMPGT16_NUM_MEMORY_F,                                               // 0b0001001101
     NULL,
     NULL,
     NULL,
     NULL,
+    CMPGT16_REGISTER_REGISTER_N_N,                                      // 0b0001010010
+    CMPGT16_REGISTER_REGISTER_N_F,                                      // 0b0001010011
+    CMPGT16_REGISTER_MEMORY_N_N,                                        // 0b0001010100
+    CMPGT16_REGISTER_MEMORY_N_F,                                        // 0b0001010101
     NULL,
     NULL,
     NULL,
-    CMPGT16_NUM_REGISTER_N,                                               // 0b0001010001
-    CMPGT16_REGISTER_REGISTER_N_N,                                        // 0b0001010010
-    CMPGT16_REGISTER_REGISTER_F_N,                                        // 0b0001010011
-    CMPGT16_MEMORY_REGISTER_N_N,                                          // 0b0001010100
-    CMPGT16_MEMORY_REGISTER_F_N,                                          // 0b0001010101
     NULL,
+    CMPGT16_REGISTER_REGISTER_F_N,                                      // 0b0001011010
+    CMPGT16_REGISTER_REGISTER_F_F,                                      // 0b0001011011
+    CMPGT16_REGISTER_MEMORY_F_N,                                        // 0b0001011100
+    CMPGT16_REGISTER_MEMORY_F_F,                                        // 0b0001011101
     NULL,
     NULL,
-    CMPGT16_NUM_REGISTER_F,                                               // 0b0001011001
-    CMPGT16_REGISTER_REGISTER_N_F,                                        // 0b0001011010
-    CMPGT16_REGISTER_REGISTER_F_F,                                        // 0b0001011011
-    CMPGT16_MEMORY_REGISTER_N_F,                                          // 0b0001011100
-    CMPGT16_MEMORY_REGISTER_F_F,                                          // 0b0001011101
     NULL,
     NULL,
+    CMPGT16_MEMORY_REGISTER_N_N,                                        // 0b0001100010
+    CMPGT16_MEMORY_REGISTER_N_F,                                        // 0b0001100011
+    CMPGT16_MEMORY_MEMORY_N_N,                                          // 0b0001100100
+    CMPGT16_MEMORY_MEMORY_N_F,                                          // 0b0001100101
     NULL,
-    CMPGT16_NUM_MEMORY_N,                                                 // 0b0001100001
-    CMPGT16_REGISTER_MEMORY_N_N,                                          // 0b0001100010
-    CMPGT16_REGISTER_MEMORY_F_N,                                          // 0b0001100011
-    CMPGT16_MEMORY_MEMORY_N_N,                                            // 0b0001100100
-    CMPGT16_MEMORY_MEMORY_F_N,                                            // 0b0001100101
     NULL,
     NULL,
     NULL,
-    CMPGT16_NUM_MEMORY_F,                                                 // 0b0001101001
-    CMPGT16_REGISTER_MEMORY_N_F,                                          // 0b0001101000
-    CMPGT16_REGISTER_MEMORY_F_F,                                          // 0b0001101011
-    CMPGT16_MEMORY_MEMORY_N_F,                                            // 0b0001101100
-    CMPGT16_MEMORY_MEMORY_F_F,                                            // 0b0001101101
+    CMPGT16_MEMORY_REGISTER_F_N,                                        // 0b0001101010
+    CMPGT16_MEMORY_MEMORY_F_F,                                          // 0b0001101011
+    CMPGT16_MEMORY_MEMORY_N_N,                                          // 0b0001101100
+    CMPGT16_MEMORY_MEMORY_F_F,                                          // 0b0001101101
     NULL,
     NULL,
     NULL,
@@ -157,42 +157,42 @@ static bool (*CMPGT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    CMPGT32_NUM_REGISTER_N,                                             // 0b0010001010
+    CMPGT32_NUM_REGISTER_F,                                             // 0b0010001011
+    CMPGT32_NUM_MEMORY_N,                                               // 0b0010001100
+    CMPGT32_NUM_MEMORY_F,                                               // 0b0010001101
     NULL,
     NULL,
     NULL,
     NULL,
+    CMPGT32_REGISTER_REGISTER_N_N,                                      // 0b0010010010
+    CMPGT32_REGISTER_REGISTER_N_F,                                      // 0b0010010011
+    CMPGT32_REGISTER_MEMORY_N_N,                                        // 0b0010010100
+    CMPGT32_REGISTER_MEMORY_N_F,                                        // 0b0010010101
     NULL,
     NULL,
     NULL,
-    CMPGT32_NUM_REGISTER_N,                                               // 0b0010010001
-    CMPGT32_REGISTER_REGISTER_N_N,                                        // 0b0010010010
-    CMPGT32_REGISTER_REGISTER_F_N,                                        // 0b0010010011
-    CMPGT32_MEMORY_REGISTER_N_N,                                          // 0b0010010100
-    CMPGT32_MEMORY_REGISTER_F_N,                                          // 0b0010010101
     NULL,
+    CMPGT32_REGISTER_REGISTER_F_N,                                      // 0b0010011010
+    CMPGT32_REGISTER_REGISTER_F_F,                                      // 0b0010011011
+    CMPGT32_REGISTER_MEMORY_F_N,                                        // 0b0010011100
+    CMPGT32_REGISTER_MEMORY_F_F,                                        // 0b0010011101
     NULL,
     NULL,
-    CMPGT32_NUM_REGISTER_F,                                               // 0b0010011001
-    CMPGT32_REGISTER_REGISTER_N_F,                                        // 0b0010011010
-    CMPGT32_REGISTER_REGISTER_F_F,                                        // 0b0010011011
-    CMPGT32_MEMORY_REGISTER_N_F,                                          // 0b0010011100
-    CMPGT32_MEMORY_REGISTER_F_F,                                          // 0b0010011101
     NULL,
     NULL,
+    CMPGT32_MEMORY_REGISTER_N_N,                                        // 0b0010100010
+    CMPGT32_MEMORY_REGISTER_N_F,                                        // 0b0010100011
+    CMPGT32_MEMORY_MEMORY_N_N,                                          // 0b0010100100
+    CMPGT32_MEMORY_MEMORY_N_F,                                          // 0b0010100101
     NULL,
-    CMPGT32_NUM_MEMORY_N,                                                 // 0b0010100001
-    CMPGT32_REGISTER_MEMORY_N_N,                                          // 0b0010100010
-    CMPGT32_REGISTER_MEMORY_F_N,                                          // 0b0010100011
-    CMPGT32_MEMORY_MEMORY_N_N,                                            // 0b0010100100
-    CMPGT32_MEMORY_MEMORY_F_N,                                            // 0b0010100101
     NULL,
     NULL,
     NULL,
-    CMPGT32_NUM_MEMORY_F,                                                 // 0b0010101001
-    CMPGT32_REGISTER_MEMORY_N_F,                                          // 0b0010101000
-    CMPGT32_REGISTER_MEMORY_F_F,                                          // 0b0010101011
-    CMPGT32_MEMORY_MEMORY_N_F,                                            // 0b0010101100
-    CMPGT32_MEMORY_MEMORY_F_F,                                            // 0b0010101101
+    CMPGT32_MEMORY_REGISTER_F_N,                                        // 0b0010101010
+    CMPGT32_MEMORY_MEMORY_F_F,                                          // 0b0010101011
+    CMPGT32_MEMORY_MEMORY_N_N,                                          // 0b0010101100
+    CMPGT32_MEMORY_MEMORY_F_F,                                          // 0b0010101101
     NULL,
     NULL,
     NULL,
@@ -285,42 +285,42 @@ static bool (*CMPGT_MODES[])(ARGUMENT_TYPES) = {
     NULL,
     NULL,
     NULL,
+    CMPGT64_NUM_REGISTER_N,                                             // 0b0100001010
+    CMPGT64_NUM_REGISTER_F,                                             // 0b0100001011
+    CMPGT64_NUM_MEMORY_N,                                               // 0b0100001100
+    CMPGT64_NUM_MEMORY_F,                                               // 0b0100001101
     NULL,
     NULL,
     NULL,
     NULL,
+    CMPGT64_REGISTER_REGISTER_N_N,                                      // 0b0100010010
+    CMPGT64_REGISTER_REGISTER_N_F,                                      // 0b0100010011
+    CMPGT64_REGISTER_MEMORY_N_N,                                        // 0b0100010100
+    CMPGT64_REGISTER_MEMORY_N_F,                                        // 0b0100010101
     NULL,
     NULL,
     NULL,
-    CMPGT64_NUM_REGISTER_N,                                               // 0b0100010001
-    CMPGT64_REGISTER_REGISTER_N_N,                                        // 0b0100010010
-    CMPGT64_REGISTER_REGISTER_F_N,                                        // 0b0100010011
-    CMPGT64_MEMORY_REGISTER_N_N,                                          // 0b0100010100
-    CMPGT64_MEMORY_REGISTER_F_N,                                          // 0b0100010101
     NULL,
+    CMPGT64_REGISTER_REGISTER_F_N,                                      // 0b0100011010
+    CMPGT64_REGISTER_REGISTER_F_F,                                      // 0b0100011011
+    CMPGT64_REGISTER_MEMORY_F_N,                                        // 0b0100011100
+    CMPGT64_REGISTER_MEMORY_F_F,                                        // 0b0100011101
     NULL,
     NULL,
-    CMPGT64_NUM_REGISTER_F,                                               // 0b0100011001
-    CMPGT64_REGISTER_REGISTER_N_F,                                        // 0b0100011010
-    CMPGT64_REGISTER_REGISTER_F_F,                                        // 0b0100011011
-    CMPGT64_MEMORY_REGISTER_N_F,                                          // 0b0100011100
-    CMPGT64_MEMORY_REGISTER_F_F,                                          // 0b0100011101
     NULL,
     NULL,
+    CMPGT64_MEMORY_REGISTER_N_N,                                        // 0b0100100010
+    CMPGT64_MEMORY_REGISTER_N_F,                                        // 0b0100100011
+    CMPGT64_MEMORY_MEMORY_N_N,                                          // 0b0100100100
+    CMPGT64_MEMORY_MEMORY_N_F,                                          // 0b0100100101
     NULL,
-    CMPGT64_NUM_MEMORY_N,                                                 // 0b0100100001
-    CMPGT64_REGISTER_MEMORY_N_N,                                          // 0b0100100010
-    CMPGT64_REGISTER_MEMORY_F_N,                                          // 0b0100100011
-    CMPGT64_MEMORY_MEMORY_N_N,                                            // 0b0100100100
-    CMPGT64_MEMORY_MEMORY_F_N,                                            // 0b0100100101
     NULL,
     NULL,
     NULL,
-    CMPGT64_NUM_MEMORY_F,                                                 // 0b0100101001
-    CMPGT64_REGISTER_MEMORY_N_F,                                          // 0b0100101000
-    CMPGT64_REGISTER_MEMORY_F_F,                                          // 0b0100101011
-    CMPGT64_MEMORY_MEMORY_N_F,                                            // 0b0100101100
-    CMPGT64_MEMORY_MEMORY_F_F                                             // 0b0100101101
+    CMPGT64_MEMORY_REGISTER_F_N,                                        // 0b0100101010
+    CMPGT64_MEMORY_MEMORY_F_F,                                          // 0b0100101011
+    CMPGT64_MEMORY_MEMORY_N_N,                                          // 0b0100101100
+    CMPGT64_MEMORY_MEMORY_F_F,                                          // 0b0100101101
 };
 
 
