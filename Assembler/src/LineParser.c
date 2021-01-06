@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BinaryGen.h"
 #include "LineParser.h"
 
 static int64_t GetNumber(uint8_t* val)
@@ -57,22 +58,22 @@ static bool IsMemory(uint8_t* val)
 }
 
 
-static bool AppendArgument(struct Instruction instruction, struct Argument* argument)
+static bool AppendArgument(struct Instruction* instruction, struct Argument* argument)
 {
-    if (!instruction.numberOfArguments)
+    if (!instruction->numberOfArguments)
     {
-        instruction.arguments = (struct Argument*)malloc(sizeof(struct Argument));
-        if (!instruction.arguments)
+        instruction->arguments = (struct Argument*)malloc(sizeof(struct Argument));
+        if (!instruction->arguments)
             return false;
     }
     else
     {
-        instruction.arguments = (struct Argument*)realloc(instruction.arguments, (instruction.numberOfArguments + 1) * sizeof(struct Argument));
-        if (!instruction.arguments)
+        instruction->arguments = (struct Argument*)realloc(instruction->arguments, (instruction->numberOfArguments + 1) * sizeof(struct Argument));
+        if (!instruction->arguments)
             return false;
     }
 
-    memcpy(&(instruction.arguments[instruction.numberOfArguments++]), argument, sizeof(struct Argument));
+    memcpy(&(instruction->arguments[instruction->numberOfArguments++]), argument, sizeof(struct Argument));
 
     return true;
 }
@@ -171,76 +172,110 @@ struct Binary* AssembleLine(uint8_t* line)
     }
 
     // Clears comments from end of line
-    for (uint32_t i = lineLength - 1; i >= 0; i--)
+    for (uint64_t i = 0; i < lineLength; i++)
     {
         if (line[i] == '#')
-            lineLength = i + 1;
+        {
+            lineLength = i;
+            line[i] = '\0';
+            break;
+        }
     }
+    lineLength = strlen((const char*)line);
 
     // Find end of mnemonic
     for (uint32_t i = 0; i < lineLength; i++)
     {
         if (line[i] == ' ' || line[i] == '\t')
-            sizeOfMnemonic = i;
-    }
-
-    line[sizeOfMnemonic] = '\0';
-    struct Instruction* instruction = InitializeInstruction(line);
-    if (!instruction)
-        return false;
-    line += sizeOfMnemonic + 1;
-    sizeOfMnemonic = strlen((const char*)line);
-
-    int64_t startOfArgument = -1;
-    int64_t endOfArgument = -1;
-    for (int32_t i = 0; i < sizeOfMnemonic; i++)
-    {
-        if ((startOfArgument == -1) && ((line[i] != ' ') && (line[i] != '\t')))
-            startOfArgument = i;
-        if (((startOfArgument != -1) && (endOfArgument == -1) && (line[i] = ',')) || i + 1 == sizeOfMnemonic)
-            endOfArgument = i;
-
-        if ((startOfArgument != -1) && (endOfArgument != -1))
         {
-            uint32_t sizeOfArgument = endOfArgument - startOfArgument;
-            uint8_t* argumentStr = (uint8_t*)malloc(endOfArgument * sizeof(uint8_t));
-            uint8_t* initialArgumentStr = argumentStr;
-            if (!argumentStr)
-                return NULL;
-
-            memcpy(argumentStr, &(line[startOfArgument]), sizeOfArgument);
-
-            for (uint32_t j = 0; j < sizeOfArgument; j++)
-            {
-                if ((argumentStr[j] != ' ') && (argumentStr[j] != '\t'))
-                {
-                    argumentStr += j;
-                    sizeOfArgument -= j;
-                }
-            }
-            for (uint32_t j = sizeOfArgument - 1; j >= 0; j--)
-            {
-                if ((argumentStr[j] == ' ') || (argumentStr[j] == '\t'))
-                    argumentStr[j] = '\0';
-            }
-
-            struct Argument* arg = InitializeArgument(argumentStr);
-            if (!arg)
-            {
-                free(initialArgumentStr);
-                return NULL;
-            }
-
-            free(initialArgumentStr);
-            startOfArgument = -1;
-            endOfArgument = -1;
+            sizeOfMnemonic = i;
+            break;
         }
     }
 
+    // Flag
+    if (line[0] == '.')
+    {
 
-    struct Binary* binary = (struct Binary*)malloc(sizeof(struct Binary));
-    if (!binary)
         return NULL;
+    }
+    else
+    {
+        line[sizeOfMnemonic] = '\0';
+        struct Instruction* instruction = InitializeInstruction(line);
+        if (!instruction)
+            return false;
+        line += sizeOfMnemonic + 1;
+        sizeOfMnemonic = strlen((const char*)line);
 
-    return binary;
+        int64_t startOfArgument = -1;
+        int64_t endOfArgument = -1;
+        for (int32_t i = 0; i < sizeOfMnemonic; i++)
+        {
+            if ((startOfArgument == -1) && ((line[i] != ' ') && (line[i] != '\t')))
+                startOfArgument = i;
+            if (((startOfArgument != -1) && (endOfArgument == -1) && (line[i] == ',')) || i + 1 == sizeOfMnemonic)
+            {
+                endOfArgument = i;
+                if (i + 1 == sizeOfMnemonic)
+                    endOfArgument++;
+            }
+
+            if ((startOfArgument != -1) && (endOfArgument != -1))
+            {
+                uint32_t sizeOfArgument = endOfArgument - startOfArgument;
+                uint8_t* argumentStr = (uint8_t*)malloc((sizeOfArgument + 1)* sizeof(uint8_t));
+                uint8_t* initialArgumentStr = argumentStr;
+                if (!argumentStr)
+                    return NULL;
+
+                memcpy(argumentStr, &(line[startOfArgument]), sizeOfArgument);
+                argumentStr[sizeOfArgument] = '\0';
+
+                for (uint32_t j = 0; j < sizeOfArgument; j++)
+                {
+                    if ((argumentStr[j] != ' ') && (argumentStr[j] != '\t'))
+                    {
+                        argumentStr += j;
+                        sizeOfArgument -= j;
+                        break;
+                    }
+                }
+                for (int64_t j = sizeOfArgument - 1; j >= 0; j--)
+                {
+                    if ((argumentStr[j] == ' ') || (argumentStr[j] == '\t'))
+                        argumentStr[j] = '\0';
+                }
+
+                struct Argument* arg = InitializeArgument(argumentStr);
+                if (!arg)
+                {
+                    free(initialArgumentStr);
+                    return NULL;
+                }
+
+                instruction->AppendArgument(instruction, arg);
+
+                free(initialArgumentStr);
+                startOfArgument = -1;
+                endOfArgument = -1;
+            }
+        }
+
+
+
+        struct Binary* binary = (struct Binary*)malloc(sizeof(struct Binary));
+        if (!binary)
+            return NULL;
+
+        if (!Generate(instruction, binary))
+        {
+            free(binary);
+            free(instruction);
+            return NULL;
+        }
+
+        free(instruction);
+        return binary;
+    }
 }

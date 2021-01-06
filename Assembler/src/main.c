@@ -1,6 +1,11 @@
+#ifdef _MSC_VER
+    #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "File.h"
 
@@ -26,15 +31,36 @@ int main(int argc, char** argv)
     fileContentSize = FileReadWholeFile(fptr, &fileContent);
     FileClose(fptr);
 
+    fptr = FileOpen("Out.ample", FILE_WRITE | FILE_BINARY);
+
     if (!fileContent)
     {
         fprintf(stderr, "Could not load file \"%s\"", argv[1]);
         HandleExit(1);
     }
 
+    uint8_t* pch = strtok(fileContent, "\n");
+    while (pch != NULL)
+    {
+        struct Binary* binary = AssembleLine(pch);
 
-    const char* str = " mov r0, r1";
-    struct Binary* binary = AssembleLine((uint8_t*)str);
+        if (binary)
+        {
+            uint8_t* bytes = (uint8_t*)malloc(32 * sizeof(uint8_t));
+            *((int32_t*)bytes) = binary->OpCode;
+            *((int32_t*)(bytes + 4)) = binary->Mode;
+            *((int64_t*)(bytes + 8)) = binary->Arg1;
+            *((int64_t*)(bytes + 16)) = binary->Arg2;
+            *((int64_t*)(bytes + 24)) = binary->Arg3;
 
+            fwrite(bytes, 1, 32, fptr);
+            fflush(fptr);
+        }
+
+        pch = strtok(NULL, "\n");
+    }
+
+    free(fileContent);
+    FileClose(fptr);
     return 0;
 }

@@ -13,8 +13,8 @@ struct Argument
     uint8_t type;
     int64_t value;
 
-    bool(*IsRegister)(struct Argument);
-    bool(*IsMemory)(struct Argument);
+    bool(*IsRegister)(struct Argument*);
+    bool(*IsMemory)(struct Argument*);
 };
 
 struct Instruction
@@ -23,7 +23,7 @@ struct Instruction
     uint8_t numberOfArguments;
     struct Argument* arguments;
 
-    bool(*AppendArgument)(struct Instruction, struct Argument*);
+    bool(*AppendArgument)(struct Instruction*, struct Argument*);
 };
 
 struct Binary

@@ -1,24 +1,12 @@
 #pragma once
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#include "OPCodeHandler.h"
+#include "LineParser.h"
 
-bool HandleAssembly_V2(LINE_ARGS);
+#define ARGS struct Instruction* instruction, struct Binary* binary
 
-bool AssembleMOV(LINE_ARGS);
-bool AssembleADD(LINE_ARGS);
-bool AssembleSUB(LINE_ARGS);
-bool AssembleMULT(LINE_ARGS);
-bool AssembleDIV(LINE_ARGS);
-bool AssembleMOD(LINE_ARGS);
-bool AssembleLSHIFT(LINE_ARGS);
-bool AssembleRSHIFT(LINE_ARGS);
-bool AssembleAND(LINE_ARGS);
-bool AssembleOR(LINE_ARGS);
-bool AssembleXOR(LINE_ARGS);
-bool AssembleNOT(LINE_ARGS);
-bool AssembleCMPEQ(LINE_ARGS);
-bool AssembleCMPNE(LINE_ARGS);
-bool AssembleCMPLT(LINE_ARGS);
-bool AssembleCMPGT(LINE_ARGS);
-bool AssembleCMPLE(LINE_ARGS);
-bool AssembleCMPGE(LINE_ARGS);
+bool MOV_V2(ARGS);
+bool ADD_V2(ARGS);
+bool SUB_V2(ARGS);
