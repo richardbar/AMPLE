@@ -72,18 +72,19 @@ bool AssembleLSHIFT(LINE_ARGS)
     uint8_t* newBytes = new uint8_t[32];
     memset(newBytes, 0, 32);
     newBytes[0] = 0x09;
+    if (CheckIfValidRegister(tokens["arg2"]))
+        *((uint32_t*)&newBytes[4]) |= 0b1 << 1;
+    else if (CheckIfValidMemory(tokens["arg2"]))
+        *((uint32_t*)&newBytes[4]) |= 0b1 << 2;
+    else
+        *((uint32_t*)&newBytes[4]) |= 1;
+
     if (CheckIfValidRegister(tokens["arg1"]))
         *((uint32_t*)&newBytes[4]) |= 0b1 << 4;
-    else
+    else if (CheckIfValidMemory(tokens["arg1"]))
         *((uint32_t*)&newBytes[4]) |= 0b1 << 5;
 
-    if (CheckIfValidRegister(tokens["arg2"]))
-        *((uint32_t*)&newBytes[4]) |= 0b1 << 2;
-    else if (CheckIfValidMemory(tokens["arg1"]))
-        *((uint32_t*)&newBytes[4]) |= 0b1 << 3;
-    else
-        *((uint32_t*)&newBytes[4]) |= 0b1;
-    newBytes[5] = 0x01;
+    *((uint32_t*)&newBytes[4]) |= 0b1 << 7;
 
     *((int64_t*)&newBytes[8]) = atoll(tokens["arg1"].substr(1).c_str());
     *((int64_t*)&newBytes[16]) = atoll(tokens["arg2"].substr((!CheckIfValidNumber(tokens["arg2"])) ? 1 : 0).c_str());

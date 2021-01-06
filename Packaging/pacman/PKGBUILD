@@ -1,0 +1,36 @@
+# Maintainer: Rikarnto Bariampa <richard1996ba@gmail.com>
+
+pkgname=AMPLE
+pkgver=0.1.2
+__pkgvertype='alpha'
+pkgrel=1
+pkgdesc='AMPLE VM'
+arch=('x86_64')
+url='https://github.com/richardbar/AMPLE/'
+license=('MIT')
+depends=('zlib')
+makedepends=('cmake')
+checkdepends=('make')
+
+build() {
+	if [ ! -d "ample-test" ]; then
+		git clone "https://github.com/richardbar/AMPLE/"
+	fi
+	cd AMPLE
+	git fetch --all --tags
+	git checkout tags/v$pkgver-$__pkgvertype
+
+  	if [ ! -d "build" ]; then
+  		mkdir build
+  	fi
+  	cd build
+
+  	cmake ..
+  	make -j4
+}
+
+package() {
+	cd AMPLE
+    make -C "build" DESTDIR="$pkgdir" install
+    install -D -m644 "LICENSE" -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}

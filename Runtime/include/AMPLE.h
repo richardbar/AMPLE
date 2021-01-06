@@ -1,5 +1,6 @@
 #pragma once
 
+#include <errno.h>
 #include <stddef.h>
 
 #if  (  defined(_WIN32)    || \
@@ -68,6 +69,20 @@
 #elif ((defined(__LINUX__) || defined(__APPLE__)) && defined(__GNUC__))
     #define EXPORT __attribute__((visibility("default")))
     #define IMPORT
+#else
+    #define EXPORT
+    #define IMPORT
+#endif
+
+
+#if   ( defined(__WINDOWS__) )
+    #define INVALID_ARGUMENT 10022
+#elif ( defined(__LINUX__) )
+    #define INVALID_ARGUMENT EINVAL
+#elif ( defined(__APPLE__) )
+    #define INVALID_ARGUMENT EINVAL
+#else
+    #define INVALID_ARGUMENT 1
 #endif
 
 

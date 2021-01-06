@@ -2,21 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "main.h"
-
-#include "AMPLE.h"
 #include "argProcessor.h"
-#include "HandleOP.h"
+#include "Execution.h"
+#include "main.h"
 
 #include "File.h"
 #include "CList.h"
+#include "CStack.h"
+#include "StringUtils.h"
 
-#if (defined(__LINUX__) || defined(__APPLE__))
-    #include <fcntl.h>
-    #include <sys/mman.h>
-    #include <sys/stat.h>
-    #include <unistd.h>
-#endif
 
 CList FilesToRun = NULL;
 CList Flags = NULL;
@@ -25,10 +19,7 @@ uint64_t* registers = NULL;
 CList Memory = NULL;
 CList Registers = NULL;
 
-bool stringComparer(void* str1, void* str2)
-{
-    return strcmp(str1, str2) == 0;
-}
+extern CStack ExecutionStack;
 
 void HandleEnd(int _exitCode)
 {
@@ -45,13 +36,14 @@ void HandleEnd(int _exitCode)
 
     FreeList(Memory);
     FreeList(Registers);
+    FreeStack(ExecutionStack);
 
     exit(_exitCode);
 }
 
 bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
 {
-    if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", stringComparer) || !memory || !registers)
+    if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", CListFlagEqual) || !memory || !registers)
     {
         if (memory)
             free(memory);
@@ -97,138 +89,46 @@ bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
 
 bool HandleFile(const char* fname, int* _exitCode)
 {
-    uint8_t *fileContent;
+    uint8_t* fileContent;
     uint64_t sizeOfFileContent;
-#if defined(__WINDOWS__)
-    {
-        FILE* fptr;
-        fopen_s(&fptr, fname, "rb");
-        if (!fptr)
-        {
-            *_exitCode = 1;
-            return false;
-        }
-        fseek(fptr, 0, SEEK_END);
-        sizeOfFileContent = ftell(fptr);
-        fseek(fptr, 0, SEEK_SET);
 
-        fileContent = malloc(sizeOfFileContent);
-        fread(fileContent, 1, sizeOfFileContent, fptr);
-        fclose(fptr);
-    }
-#elif (defined(__LINUX__) || defined(__APPLE__))
-    {
-        int file = open(fname, O_RDONLY);
-        if (file == -1) {
-            *_exitCode = 1;
-            return false;
-        }
+    FILE* fptr = FileOpen(fname, FILE_READ | FILE_BINARY);
+    sizeOfFileContent = FileReadWholeFile(fptr, &fileContent);
+    FileClose(fptr);
 
-        struct stat buffer;
-        int status;
-        status = stat(fname, &buffer);
-        if (status) {
-            *_exitCode = 1;
-            return false;
-        }
-
-        fileContent = (uint8_t *) mmap(NULL, buffer.st_size, PROT_READ, MAP_PRIVATE, file, 0);
-
-        close(file);
-
-        sizeOfFileContent = buffer.st_size;
-    }
-#else
-    {
-        uint64_t fileContentSize = 2;
-        uint64_t fileContentUsed = 0;
-
-        fileContent = (uint8_t*)malloc(fileContentSize * sizeof(uint8_t));
-
-        FILE* fptr = fopen(fname, "r");
-        if (!fptr)
-        {
-            *_exitCode = 1;
-            return false;
-        }
-
-        int c;
-        while (true)
-        {
-            if ((c = fgetc(fptr)) != -1)
-            {
-                if (fileContentSize <= fileContentUsed + 1)
-                {
-                    uint8_t* oldFileContent = fileContent;
-                    fileContentSize *= 2;
-                    fileContent = (uint8_t*)realloc(fileContent, fileContentSize * sizeof(uint8_t));
-                    if (!fileContent)
-                    {
-                        free(oldFileContent);
-                        fclose(fptr);
-                        *_exitCode = 1;
-                        return false;
-                    }
-                }
-                fileContent[fileContentUsed++] = (uint8_t)c;
-            }
-            else
-                break;
-        }
-        fclose(fptr);
-        fileContent[fileContentUsed++] = 0;
-        uint8_t* oldFileContent = fileContent;
-        fileContent = (uint8_t*)realloc(fileContent, fileContentUsed * sizeof(uint8_t));
-        if (!fileContent)
-        {
-            free(oldFileContent);
-            *_exitCode = 1;
-            return false;
-        }
-        sizeOfFileContent = fileContentUsed;
-    }
-#endif
-
-    uint32_t startPos = 0;
-    /*for (int i = 0; i < sizeOfFileContent - 21; i++)
-    {
-        if (memcmp((void *) ((uint64_t) fileContent + i), "---End of Metadata---", 21) == 0)
-        {
-            startPos = i + 21;
-            break;
-        }
-    }*/
-
-    fileContent += startPos;
-
-    if ((sizeOfFileContent - startPos) % INSTRUCTION_LENGTH != 0)
+    if (sizeOfFileContent % INSTRUCTION_LENGTH != 0)
     {
         *_exitCode = 1;
-#if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))
         free(fileContent);
-#endif
         return false;
     }
 
-    if (!InitializeMemoryAndRegisters(4096, 64))
+    uint32_t memorySize = 4096;
+    if (Flags && ContainsValueInList(Flags, "memory", CListFlagEqual))
+        memorySize = atoi(GetCListFlagValue(Flags, "memory"));
+
+    if (!InitializeMemoryAndRegisters(memorySize, 64))
         return false;
 
-    SET_OPCODE_VERSION(1);
+    uint32_t numberOfInstructions = sizeOfFileContent / INSTRUCTION_LENGTH;
+    struct ExecutionStruct* run = (struct ExecutionStruct*)malloc(sizeof(struct ExecutionStruct));
+    run->ByteCode = fileContent;
+    run->Position = 0;
+    run->Size = numberOfInstructions;
 
-    uint32_t numberOfInstructions = (sizeOfFileContent - startPos) / INSTRUCTION_LENGTH;
+    ExecutionStack = InitializeStack();
+    InsertElementToStack(ExecutionStack, run);
 
-    for (uint32_t i = 0; i < numberOfInstructions; i++)
+    if (!Execute(Memory, Registers))
     {
-        if (!HANDLE_OPCODE((uint8_t *) ((uint64_t) fileContent + i * INSTRUCTION_LENGTH), &i, Memory, Registers))
-        {
-            *_exitCode = 1;
-#if !(defined(__LINUX__) || defined(__APPLE__) || defined(__WINDOWS__))
-            free(fileContent);
-#endif
-            return false;
-        }
+        *_exitCode = 1;
+        free(run);
+        free(fileContent);
+        return false;
     }
 
+    free(fileContent);
+    free(run);
     return true;
 }
 
@@ -254,15 +154,23 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (ContainsValueInList(Flags, "printRegisters", stringComparer) && Registers)
+    if (ContainsValueInList(Flags, "printRegisters", CListFlagEqual) && Registers)
     {
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
-                printf("%lld ", *(int64_t*)GetElementFromList(Registers, i * 8 + j));
+            {
+                int64_t* regPtr = (int64_t*)GetElementFromList(Registers, i * 8 + j);
+                if (!regPtr)
+                {
+                    printf("Error while printing registers\n");
+                    return 1;
+                }
+                printf("%ld ", *regPtr);
+            }
             printf("\n");
         }
     }
 
-    HandleEnd(exitCode);
+    HandleEnd((exitCode != 0) ? exitCode : *((int*)FastGetElementFromList(Registers, 0)));
 }
