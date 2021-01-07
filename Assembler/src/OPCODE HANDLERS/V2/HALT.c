@@ -29,7 +29,7 @@ bool HALT_V2(ARGS)
         binary->Mode |= 0b1;
     }
 
-    binary->OpCode = 3;
+    binary->OpCode = 1;
 
     return true;
 }

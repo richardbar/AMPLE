@@ -159,21 +159,24 @@ static bool GLUE(name ##width, _NUM_REGISTER_N)(FUNCTION_ARGUMENTS)             
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= Arg1)                                                                                                    \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Registers, Arg1)) operator (castType)Arg2;                                               \
+    *((castType*)GetElementFromList(Registers, Arg1)) operator (castType)Arg2;                                                      \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_REGISTER_N_N)(FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                           \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));            \
+    *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));                   \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_REGISTER_F_N)(FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= Arg1)                                                                                                    \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));        \
+    *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));               \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_REGISTER_N_N)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
@@ -181,43 +184,50 @@ static bool GLUE(name ##width, _MEMORY_REGISTER_N_N)(FUNCTION_ARGUMENTS)        
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if ((sizeOfRegisters <= Arg1) && (sizeOfMemory <= Arg2))                                                                        \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));               \
+    *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                      \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_REGISTER_F_N)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= Arg1)                                                                                                    \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));           \
+    *((castType*)GetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));                  \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
                                                                                                                                     \
                                                                                                                                     \
                                                                                                                                     \
 static bool GLUE(name ##width, _NUM_REGISTER_F)(FUNCTION_ARGUMENTS)                                                                 \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Registers, Arg1)) operator (castType)Arg2;                                           \
+    *((castType*)FastGetElementFromList(Registers, Arg1)) operator (castType)Arg2;                                                  \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_REGISTER_N_F)(FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= Arg2)                                                                                                    \
         return false;                                                                                                               \
-    return *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));        \
+    *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));               \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_REGISTER_F_F)(FUNCTION_ARGUMENTS)                                                          \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));    \
+    *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));           \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_REGISTER_N_F)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= Arg2)                                                                                                       \
         return false;                                                                                                               \
-    return *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));           \
+    *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                  \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_REGISTER_F_F)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));       \
+    *((castType*)FastGetElementFromList(Registers, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));              \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
                                                                                                                                     \
                                                                                                                                     \
@@ -227,7 +237,8 @@ static bool GLUE(name ##width, _NUM_MEMORY_N)(FUNCTION_ARGUMENTS)               
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= Arg1)                                                                                                       \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Memory, Arg1)) operator (castType)Arg2;                                                  \
+    *((castType*)GetElementFromList(Memory, Arg1)) operator (castType)Arg2;                                                         \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_MEMORY_N_N)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
@@ -235,57 +246,66 @@ static bool GLUE(name ##width, _REGISTER_MEMORY_N_N)(FUNCTION_ARGUMENTS)        
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if ((sizeOfMemory <= Arg1) && (sizeOfRegisters <= Arg2))                                                                        \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));               \
+    *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));                      \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_MEMORY_F_N)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= Arg1)                                                                                                       \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));           \
+    *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));                  \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_MEMORY_N_N)(FUNCTION_ARGUMENTS)                                                              \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= ((Arg1 > Arg2) ? Arg1 : Arg2))                                                                              \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                  \
+    *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                         \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_MEMORY_F_N)(FUNCTION_ARGUMENTS)                                                              \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= Arg1)                                                                                                       \
         return false;                                                                                                               \
-    return *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));              \
+    *((castType*)GetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));                     \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
                                                                                                                                     \
                                                                                                                                     \
                                                                                                                                     \
 static bool GLUE(name ##width, _NUM_MEMORY_F)(FUNCTION_ARGUMENTS)                                                                   \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Memory, Arg1)) operator (castType)Arg2;                                              \
+    *((castType*)FastGetElementFromList(Memory, Arg1)) operator (castType)Arg2;                                                     \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_MEMORY_N_F)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
     CHECK_SIZE_OF_REGISTER();                                                                                                       \
     if (sizeOfRegisters <= Arg2)                                                                                                    \
         return false;                                                                                                               \
-    return *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));           \
+    *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Registers, Arg2));                  \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _REGISTER_MEMORY_F_F)(FUNCTION_ARGUMENTS)                                                            \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));       \
+    *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Registers, Arg2));              \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_MEMORY_N_F)(FUNCTION_ARGUMENTS)                                                              \
 {                                                                                                                                   \
     CHECK_SIZE_OF_MEMORY();                                                                                                         \
     if (sizeOfMemory <= Arg2)                                                                                                       \
         return false;                                                                                                               \
-    return *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));              \
+    *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)GetElementFromList(Memory, Arg2));                     \
+    return true;                                                                                                                    \
 }                                                                                                                                   \
 static bool GLUE(name ##width, _MEMORY_MEMORY_F_F)(FUNCTION_ARGUMENTS)                                                              \
 {                                                                                                                                   \
-    return *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));          \
+    *((castType*)FastGetElementFromList(Memory, Arg1)) operator *((castType*)FastGetElementFromList(Memory, Arg2));                 \
+    return true;                                                                                                                    \
 }
 
 
