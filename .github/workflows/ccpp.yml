@@ -27,6 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - name: coreutils
+        run: brew install coreutils
       - name: configure
         run: mkdir build && cd build && cmake ..
       - name: build
