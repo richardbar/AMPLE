@@ -17,10 +17,6 @@ jobs:
       run: mkdir build && cd build && cmake ..
     - name: build
       run: cmake --build build
-    - name: test
-      run: |
-        cd tests
-        ./test.sh
 
   build-macos:
     runs-on: macos-latest
@@ -33,10 +29,6 @@ jobs:
         run: mkdir build && cd build && cmake ..
       - name: build
         run: cmake --build build
-      - name: test
-        run: |
-          cd tests
-          ./test.sh
   
   build-windows:
     runs-on: windows-latest
