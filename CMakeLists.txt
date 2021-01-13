@@ -4,5 +4,7 @@ project(AMPLE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(lib)
+add_subdirectory(Versions)
 add_subdirectory(Assembler)
 add_subdirectory(Runtime)
+

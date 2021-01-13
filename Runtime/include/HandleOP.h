@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "CList.h"
-#include "OPCODE HANDLERS/Instruction.h"
+#include "Instruction.h"
 
 
 bool SET_OPCODE_VERSION(uint32_t INSTRUCTION_VERSION);
