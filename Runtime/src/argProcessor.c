@@ -72,7 +72,7 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 }
                 else if (strcmp("--version", argPtr[i]) == 0 && argNum != 1)
                 {
-                    fprintf(stderr, "--help needs to be the only argument");
+                    fprintf(stderr, "--version needs to be the only argument");
                     *_exitCode = INVALID_ARGUMENT;
                     return false;
                 }
@@ -110,6 +110,14 @@ bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _
                 {
                     FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
                     flag->FlagName = "memory";
+                    flag->FlagValue = argValue;
+                    if (!InsertElementToList(flags, flag))
+                        return false;
+                }
+                else if (strcmp("--ampleBinaryVersion", argPtr[i]) == 0)
+                {
+                    FlagStruct* flag = (FlagStruct*)malloc(sizeof(FlagStruct));
+                    flag->FlagName = "--ampleBinaryVersion";
                     flag->FlagValue = argValue;
                     if (!InsertElementToList(flags, flag))
                         return false;

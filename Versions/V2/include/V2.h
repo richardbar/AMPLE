@@ -4,7 +4,7 @@
 #include "CStack.h"
 #include "Instruction.h"
 
-#include "../../../Runtime/include/AMPLE.h"
+#include "AMPLE.h"
 
 #define GLUE(x, y) x##y
 

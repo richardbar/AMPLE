@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../../include/V1.h"
+#include "V1.h"
 
 
 static bool JMP_NUM(FUNCTION_ARGUMENTS)

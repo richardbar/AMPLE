@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../../include/V1.h"
+#include "V1.h"
 
 #define ADD_MULT_FUNC(name, type)                                                                                    \
 static bool MULT_REGISTER_NUM_ ##name (FUNCTION_ARGUMENTS)                                                           \

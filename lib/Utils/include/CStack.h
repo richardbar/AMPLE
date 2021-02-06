@@ -9,7 +9,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../../../Runtime/include/AMPLE.h"
+#include "AMPLE.h"
 
 typedef struct
 {

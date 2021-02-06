@@ -1,6 +1,6 @@
 #include "File.h"
 
-#include "../../../Runtime/include/AMPLE.h"
+#include "AMPLE.h"
 
 #if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
 #include <stdio.h>

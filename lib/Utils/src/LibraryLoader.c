@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "LibraryLoader.h"
-#include "../../../Runtime/include/AMPLE.h"
+#include "AMPLE.h"
 
 #if defined(__WINDOWS__)
     #include <Shlobj.h>

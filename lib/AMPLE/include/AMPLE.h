@@ -98,3 +98,5 @@
     #define INLINE inline
 #else
 #endif
+
+size_t GetEnvirontment(const char* name, char* destination);

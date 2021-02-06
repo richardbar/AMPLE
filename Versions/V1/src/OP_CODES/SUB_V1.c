@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../../include/V1.h"
+#include "V1.h"
 
 #define ADD_SUB_FUNC(name, type)                                                                                    \
 static bool SUB_REGISTER_NUM_ ##name (FUNCTION_ARGUMENTS)                                                           \

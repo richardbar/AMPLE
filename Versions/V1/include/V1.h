@@ -4,7 +4,7 @@
 #include "CStack.h"
 #include "Instruction.h"
 
-#include "../../../Runtime/include/AMPLE.h"
+#include "AMPLE.h"
 
 #define ARGUMENT_TYPES uint64_t, uint64_t,uint64_t,  uint32_t*, CList, CList, CStack, bool*, bool(*)(CList, CList)
 #define FUNCTION_ARGUMENTS uint64_t Arg1, uint64_t Arg2, uint64_t Arg3, uint32_t* position, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList)

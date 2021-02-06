@@ -7,7 +7,10 @@
 
 #include "argProcessor.h"
 #include "Execution.h"
+#include "HandleOP.h"
 #include "main.h"
+
+#include "Instruction.h"
 
 #include "File.h"
 #include "CList.h"
@@ -130,6 +133,8 @@ bool HandleFile(const char* fname, int* _exitCode)
     run->ByteCode = fileContent;
     run->Position = 0;
     run->Size = numberOfInstructions;
+
+    SET_OPCODE_VERSION(2);
 
     ExecutionStack = InitializeStack();
     InsertElementToStack(ExecutionStack, run);

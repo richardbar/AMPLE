@@ -9,6 +9,7 @@ file(GLOB SRC src/*.c src/*/*.c)
 
 add_library(${PROJECT_NAME} SHARED ${SRC})
 
+target_link_libraries(${PROJECT_NAME} AMPLE-Lib)
 target_link_libraries(${PROJECT_NAME} AMPLE-IO-Lib)
 target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)
 
