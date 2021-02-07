@@ -17,7 +17,4 @@ target_link_libraries(${PROJECT_NAME} AMPLE-IO-Lib)
 target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 
-add_dependencies(${PROJECT_NAME} AMPLE-OPCODE-V1)
-add_dependencies(${PROJECT_NAME} AMPLE-OPCODE-V2)
-
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

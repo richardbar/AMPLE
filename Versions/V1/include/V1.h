@@ -11,4 +11,4 @@
 #define MODE_FUNCTION_ARGUMENTS uint32_t Mode, FUNCTION_ARGUMENTS
 #define PASS_ARGUMENTS Arg1, Arg2, Arg3, position, Memory, Registers, ExecutionStack, StopCurrentExecution, Execute
 
-bool HANDLE_OPCODE_V1(Instruction instruction, uint32_t* poition, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList));
+EXPORT bool HANDLE_OPCODE(Instruction instruction, uint32_t* poition, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList));

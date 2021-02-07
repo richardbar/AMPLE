@@ -9,6 +9,7 @@ extern "C" {
 
 #define Library void*
 
+Library* LoadOPCodeVersion(uint32_t Version);
 Library* LoadLib(const char* LibraryName);
 void* GetFuncFromLib(Library* Lib, const char* FunctionName);
 void UnloadLib(Library* Lib);

@@ -311,7 +311,7 @@ static bool GLUE(name ##width, _MEMORY_MEMORY_F_F)(FUNCTION_ARGUMENTS)          
 
 
 
-bool HANDLE_OPCODE_V2(Instruction instruction, uint32_t* poition, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList));
+EXPORT bool HANDLE_OPCODE(Instruction instruction, uint32_t* poition, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList));
 bool HALT_V2(MODE_FUNCTION_ARGUMENTS);
 bool MOV_V2(MODE_FUNCTION_ARGUMENTS);
 bool ADD_V2(MODE_FUNCTION_ARGUMENTS);

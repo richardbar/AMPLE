@@ -25,7 +25,7 @@ static bool (*Instructions[])(MODE_FUNCTION_ARGUMENTS) = {
 };
 static uint32_t NumberOfInstructions = 0;
 
-bool HANDLE_OPCODE_V1(Instruction instruction, uint32_t* position, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList))
+bool HANDLE_OPCODE(Instruction instruction, uint32_t* position, CList Memory, CList Registers, CStack ExecutionStack, bool* StopCurrentExecution, bool(*Execute)(CList, CList))
 {
     if (!NumberOfInstructions)
         NumberOfInstructions = sizeof(Instructions) / sizeof(Instructions[0]);

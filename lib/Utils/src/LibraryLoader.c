@@ -2,8 +2,9 @@
     #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "LibraryLoader.h"
 #include "AMPLE.h"
@@ -39,7 +40,86 @@ static const char* GetHomeDir()
 #endif
 }
 
+static void* OpenLibrary(const char* Location)
+{
+    void* returnVal = NULL;
+
+#if defined(__WINDOWS__)
+    returnVal = (void*)LoadLibraryA(TEXT(Location));
+#elif defined(__LINUX__) || defined(__APPLE__)
+    returnVal = (void*)dlopen(Location, RTLD_LAZY);
+#endif
+
+    return returnVal;
+}
+
 const char* HomeDir = NULL;
+
+Library* LoadOPCodeVersion(uint32_t Version)
+{
+    if (!HomeDir)
+        HomeDir = GetHomeDir();
+
+    uint32_t LibPosSize = strlen(HomeDir) + 15;
+#if defined(__WINDOWS__)
+    LibPosSize += strlen("\\.ample\\versions\\");
+#elif defined(__LINUX__) || defined(__APPLE__)
+    LibPosSize += strlen("/.ample/versions/");
+#endif
+
+    LibStruct* lib = (LibStruct*)malloc(sizeof(LibStruct));
+    lib->LibraryName = (char*)malloc((strlen("OPCODE-V") + 4) * sizeof(char));
+    if (!lib->LibraryName)
+    {
+        free(lib);
+        return NULL;
+    }
+
+    lib->LibraryLocation = (char*)malloc(LibPosSize * sizeof(char));
+    if (!lib->LibraryLocation)
+    {
+        free((void*)lib->LibraryName);
+        free(lib);
+        return NULL;
+    }
+
+    snprintf((char*)(lib->LibraryName), strlen("OPCODE-V") + 4, "OPCODE-V%d", Version);
+    snprintf((char*)(lib->LibraryLocation),
+             LibPosSize,
+             "%s%s%s%sversions%sOPCODE-V%d.%s",
+             HomeDir,
+#if defined(__WINDOWS__)
+             "\\",
+             ".ample",
+             "\\",
+             "\\",
+#elif defined(__LINUX__) || defined(__APPLE__)
+             "/",
+             ".ample",
+             "/",
+             "/",
+#endif
+             Version,
+#if defined(__WINDOWS__)
+             "dll"
+#elif defined(__LINUX__)
+             "so"
+#elif defined(__APPLE__)
+             "dylib"
+#endif
+             );
+
+    lib->LibPtr = OpenLibrary(lib->LibraryLocation);
+    if (!lib->LibPtr)
+    {
+        free((void*)(lib->LibraryLocation));
+        free((void*)(lib->LibraryName));
+        free(lib);
+        return NULL;
+    }
+
+    return (Library*)lib;
+}
 
 Library* LoadLib(const char* LibraryName) {
     if (!HomeDir)
@@ -96,11 +176,7 @@ Library* LoadLib(const char* LibraryName) {
         );
     }
 
-#if defined(__WINDOWS__)
-    lib->LibPtr = (void*)LoadLibraryA(TEXT(lib->LibraryLocation));
-#elif defined(__LINUX__) || defined(__APPLE__)
-    lib->LibPtr = (void*)dlopen(lib->LibraryLocation, RTLD_LAZY);
-#endif
+    lib->LibPtr = OpenLibrary(lib->LibraryLocation);
 
     if (!lib->LibPtr)
     {

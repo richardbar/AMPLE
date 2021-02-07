@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(AMPLE-OPCODE-V2 VERSION "2")
+project(OPCODE-V2 VERSION "2")
 
 set(CMAKE_C_STANDARD 99)
 
