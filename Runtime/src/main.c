@@ -8,6 +8,7 @@
 #include "argProcessor.h"
 #include "Execution.h"
 #include "HandleOP.h"
+#include "install.h"
 #include "main.h"
 
 #include "Instruction.h"
@@ -26,6 +27,10 @@ CList Memory = NULL;
 CList Registers = NULL;
 
 extern CStack ExecutionStack;
+
+bool notClearMemoryAndRegisters = false;
+bool printRegisters = false;
+int64_t memorySize = 4096;
 
 void HandleEnd(int _exitCode)
 {
@@ -49,12 +54,14 @@ void HandleEnd(int _exitCode)
     FreeList(Memory);
     FreeList(Registers);
 
+    CleanArguments();
+
     exit(_exitCode);
 }
 
-bool InitializeMemoryAndRegisters(uint32_t memorySize, uint32_t registerSize)
+bool InitializeMemoryAndRegisters(uint32_t registerSize)
 {
-    if (!Flags || !ContainsValueInList(Flags, "notClearMemoryAndRegisters", CListFlagEqual) || !memory || !registers)
+    if (!Flags || !notClearMemoryAndRegisters || !memory || !registers)
     {
         if (memory)
         {
@@ -121,11 +128,7 @@ bool HandleFile(const char* fname, int* _exitCode)
         return false;
     }
 
-    uint32_t memorySize = 4096;
-    if (Flags && ContainsValueInList(Flags, "memory", CListFlagEqual))
-        memorySize = atoi(GetCListFlagValue(Flags, "memory"));
-
-    if (!InitializeMemoryAndRegisters(memorySize, 64))
+    if (!InitializeMemoryAndRegisters(64))
         return false;
 
     uint32_t numberOfInstructions = sizeOfFileContent / INSTRUCTION_LENGTH;
@@ -175,8 +178,31 @@ int main(int argc, char** argv)
     FilesToRun = InitializeList(1);
     Flags = InitializeList(1);
 
-    if (!HandleArgs(--argc, ++argv, FilesToRun, Flags, &exitCode))
+    if (!HandleArgs(--argc, ++argv, &exitCode, &notClearMemoryAndRegisters, &printRegisters, &memorySize))
         HandleEnd(exitCode);
+
+    /*if (ContainsValueInList(Flags, "install", CListFlagEqual))
+    {
+        const char* url = GetCListFlagValue(Flags, "url");
+        const char* name = (GetCListFlagValue(Flags, "runtime")) ? GetCListFlagValue(Flags, "runtime") : GetCListFlagValue(Flags, "library");
+        if (url == NULL || name == NULL)
+        {
+            fprintf(stderr, "url and runtime/library arguments are required when passing install argument to AMPLE");
+            exitCode = 1;
+            HandleEnd(exitCode);
+        }
+        if (!Download(
+                (GetCListFlagValue(Flags, "runtime")) ? RUNTIME : LIBRARY,
+                name,
+                url
+                ))
+        {
+            fprintf(stderr, "An unexpected error occurred while download from url");
+            exitCode = 1;
+            HandleEnd(exitCode);
+        }
+    }*/
+
     for (int i = 0; i < GetSizeFromList(FilesToRun); i++)
     {
         if (!FileExists(GetElementFromList(FilesToRun, i)))
@@ -190,7 +216,7 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (ContainsValueInList(Flags, "printRegisters", CListFlagEqual) && Registers)
+    if (printRegisters && Registers)
     {
         for (int i = 0; i < 8; i++)
         {

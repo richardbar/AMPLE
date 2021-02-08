@@ -19,13 +19,9 @@ typedef struct
  * @param _exitCode Int Exit code pointer.
  * @return Returns true if program can continue and false if not
  */
-bool HandleArgs(int argNum, char** argPtr, CList filesToRun, CList flags, int* _exitCode);
+bool HandleArgs(int argNum, char** argPtr, int* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize);
 
 /**
- * @param flags CList pointer to check if name is equal
- * @param flagName String of the flag to look for
- * @return Returns true if flag is equal to flagName and false if it does not
+ * Clean up Arguments from library.
  */
-bool CListFlagEqual(void* flags, void* flagName);
-
-const char* GetCListFlagValue(CList flags, void* flagName);
+void CleanArguments();

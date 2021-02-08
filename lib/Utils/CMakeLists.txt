@@ -8,6 +8,7 @@ include_directories(include)
 file(GLOB SRC src/*.c)
 
 add_library(${PROJECT_NAME} STATIC ${SRC} ${HEADERS})
+target_link_libraries(${PROJECT_NAME} AMPLE-IO-Lib)
 target_link_libraries(${PROJECT_NAME} AMPLE-Lib)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)

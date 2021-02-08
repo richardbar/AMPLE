@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "Directory.h"
 #include "LibraryLoader.h"
 #include "AMPLE.h"
 
@@ -24,21 +25,6 @@ typedef struct
     const char* LibraryLocation;
     void* LibPtr;
 } LibStruct;
-
-static const char* GetHomeDir()
-{
-#if defined(__WINDOWS__)
-    char* returny;
-    size_t reqSize;
-    getenv_s(&reqSize, NULL, 0, "USERPROFILE");
-    returny = (char*)malloc(reqSize * sizeof(char));
-    getenv_s(&reqSize, returny, reqSize, "USERPROFILE");
-    return returny;
-#elif defined(__LINUX__) || defined(__APPLE__)
-    struct passwd* pw = getpwuid(getuid());
-    return pw->pw_dir;
-#endif
-}
 
 static void* OpenLibrary(const char* Location)
 {
