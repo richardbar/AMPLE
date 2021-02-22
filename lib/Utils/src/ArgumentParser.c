@@ -397,7 +397,7 @@ bool ParseArguments(char** arguments, uint32_t numberOfArguments, bool silent)
             }
         }
         // Files
-        else if (FileExists(arguments[i]))
+        else if (NFileExists(arguments[i]))
         {
             if (argumentFileEntryIndex + 1 > argumentFileEntryLength)
             {

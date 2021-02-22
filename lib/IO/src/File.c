@@ -1,87 +1,160 @@
 #include "File.h"
 
-#include "AMPLE.h"
-
-#if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#endif
 
-bool FileExists(const char* fname)
-{
-#if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
-    FILE* fptr = FileOpen(fname, FILE_READ);
-    if (fptr)
-    {
-        fclose(fptr);
-        return true;
-    }
-    else
-        return false;
-#else
-    return false;
-#endif
-}
+#include "AMPLE.h"
 
-void* FileOpen(const char* fname, uint8_t mode)
+typedef struct
 {
-#if (defined(__LINUX__) || defined(__WINDOWS__) || defined(__APPLE__))
+    bool initialized;
+    char* fname;
+    int64_t fnameLength;
+    uint8_t mode;
+    FILE* fptr;
+} FileStruct;
+
+
+NFILE NFileOpen(const char* fname, uint8_t mode)
+{
+    if (fname == NULL || mode == 0)
+        return NULL;
+
     char fmode[4] = { 0x00, 0x00, 0x00, 0x00 };
-    uint8_t bcounter = 1;
+    uint32_t bcounter = 1;
+
     if (mode & FILE_WRITE)
         fmode[0] = 'w';
-    else
+    else if (mode & FILE_READ)
         fmode[0] = 'r';
+    else
+        return NULL;
 
     if (mode & FILE_APPEND)
         fmode[bcounter++] = 'a';
 
     if (mode & FILE_BINARY)
-        fmode[bcounter++] = 'b';
+        fmode[bcounter] = 'b';
 
+#if defined(__WINDOWS__)
+    FILE* fptr = NULL;
+    errno_t  errorCode = fopen_s(&fptr, fname, fmode);
+    if (errorCode)
+        return NULL;
+#elif defined(__LINUX__) || defined(__APPLE__)
     FILE* fptr = fopen(fname, fmode);
-    return fptr;
-#else
-    return NULL;
+    if (!fptr)
+        return NULL;
 #endif
+
+    FileStruct* returnVal = (FileStruct*)malloc(sizeof(FileStruct));
+    if (!returnVal)
+    {
+        fclose(fptr);
+        fptr = NULL;
+        return NULL;
+    }
+    memset(returnVal, 0, sizeof(FileStruct));
+
+    returnVal->fnameLength = strlen(fname) + 1;
+    returnVal->fname = (char*)malloc(returnVal->fnameLength * sizeof(char));
+    if (!returnVal->fname)
+    {
+        free(returnVal);
+        returnVal = NULL;
+
+        fclose(fptr);
+        fptr = NULL;
+
+        return NULL;
+    }
+    memset(returnVal->fname, 0, returnVal->fnameLength * sizeof(char));
+    memcpy(returnVal->fname, fname, (returnVal->fnameLength - 1) * sizeof(char));
+
+    returnVal->mode = mode;
+    returnVal->fptr = fptr;
+    returnVal->initialized = true;
+
+
+    return (NFILE)returnVal;
 }
 
-void FileClose(void* file)
-{
-    fclose(file);
-}
-
-uint32_t FileReadWholeFile(void* file, uint8_t** ptr)
+void NFileClose(NFILE* file)
 {
     if (!file)
-        return 0;
+        return;
 
-    fseek(file, 0, SEEK_END);
-    uint32_t sizeOfFileContent = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    FileStruct* fileStruct = (FileStruct*)file;
+    if (!fileStruct->initialized)
+        return;
 
-    *ptr = malloc(sizeOfFileContent);
-    fread(*ptr, 1, sizeOfFileContent, file);
-
-    return sizeOfFileContent;
-}
-
-void GetFileNameWithoutExtension(const char* fname, uint64_t inputSize, char* out)
-{
-    uint64_t i = inputSize - 1;
-    for (; i >= 0; i--)
+    fileStruct->initialized = false;
+    if (fileStruct->fname)
     {
-        if (fname[i] == '.')
-            break;
-        #if defined(__LINUX__) || defined(__APPLE__)
-        if (fname[i] == '/')
-        #elif defined(__WINDOWS__)
-        if (fname[i] == '\\')
-        #endif
-            i = 0;
+        free(fileStruct->fname);
+        fileStruct->fname = NULL;
+    }
+    fileStruct->fnameLength = 0;
+
+    if (fileStruct->fptr)
+    {
+        free(fileStruct->fptr);
+        fileStruct->fptr = NULL;
     }
 
-    if (i != 0)
-        memccpy(out, fname, 1, i);
+    fileStruct->mode = 0;
+}
+
+bool NFileExists(const char* fname)
+{
+    NFILE fptr = NFileOpen(fname, FILE_READ);
+    if (fptr)
+    {
+        NFileClose(&fptr);
+        return true;
+    }
+    else
+        return false;
+}
+
+int64_t NGetFileSize(NFILE file)
+{
+    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
+        return -1;
+
+    fpos_t pFile;
+    fgetpos(((FileStruct*)file)->fptr, &pFile);
+
+    fseek(((FileStruct*)file)->fptr, 0L, SEEK_END);
+    int64_t size = ftell(((FileStruct*)file)->fptr);
+    fsetpos(((FileStruct*)file)->fptr, &pFile);
+
+    return size;
+}
+
+int64_t NReadWholeFile(NFILE file, void* destination, int64_t destionationSize)
+{
+    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
+        return -1;
+
+    int64_t size = NGetFileSize(file);
+    if (!destination)
+        return size;
+
+    if (destionationSize < size)
+        return -1;
+
+    fseek(((FileStruct*)file)->fptr, 0, SEEK_SET);
+    return NReadFile(file, destination, size, size);
+}
+
+int64_t NReadFile(NFILE file, void* destionation, int64_t destionationSize, int64_t length)
+{
+    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
+        return -1;
+
+    int64_t sizeToBeRead = (length < destionationSize) ? length : destionationSize;
+    return fread(destionation, 1, sizeToBeRead, ((FileStruct*)file)->fptr);
 }

@@ -19,7 +19,7 @@ typedef struct
  * @param _exitCode Int Exit code pointer.
  * @return Returns true if program can continue and false if not
  */
-bool HandleArgs(int argNum, char** argPtr, int* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize);
+bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize);
 
 /**
  * Clean up Arguments from library.

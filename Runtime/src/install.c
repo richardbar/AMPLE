@@ -11,6 +11,15 @@
 #include "install.h"
 
 
+typedef struct
+{
+    bool initialized;
+    char* fname;
+    int64_t fnameLength;
+    uint8_t mode;
+    FILE* fptr;
+} FileStruct;
+
 static size_t writeData(void* ptr, size_t size, size_t nmemb, void* stream)
 {
     return fwrite(ptr, size, nmemb, (FILE*)stream);
@@ -55,7 +64,7 @@ bool Download(uint8_t type, const char* name, const char* url)
     );
 
     CURL* curl_handler;
-    FILE* fptr = FileOpen(fname, FILE_WRITE | FILE_BINARY);
+    NFILE fptr = NFileOpen(fname, FILE_WRITE | FILE_BINARY);
     if (!fptr)
     {
 #if defined(__WINDOWS__)
@@ -72,7 +81,7 @@ bool Download(uint8_t type, const char* name, const char* url)
     curl_easy_setopt(curl_handler, CURLOPT_URL, url);
     curl_easy_setopt(curl_handler, CURLOPT_VERBOSE, 0);
     curl_easy_setopt(curl_handler, CURLOPT_VERBOSE, 0);
-    curl_easy_setopt(curl_handler, CURLOPT_WRITEFUNCTION, writeData);
+    curl_easy_setopt(curl_handler, CURLOPT_WRITEFUNCTION, ((FileStruct*)writeData)->fptr);
     curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, fptr);
     curl_easy_perform(curl_handler);
 
@@ -80,7 +89,7 @@ bool Download(uint8_t type, const char* name, const char* url)
 
     curl_global_cleanup();
 
-    FileClose(fptr);
+    NFileClose(fptr);
     free((void*)fname);
 #if defined(__WINDOWS__)
     free((void*)HomeDir);

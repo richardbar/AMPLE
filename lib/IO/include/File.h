@@ -7,16 +7,21 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#define FILE_READ 0x00
-#define FILE_WRITE 0x01
-#define FILE_APPEND 0x02
-#define FILE_BINARY 0x04
+#define FILE_READ 0x01
+#define FILE_WRITE 0x02
+#define FILE_APPEND 0x04
+#define FILE_BINARY 0x08
 
-bool FileExists(const char* fname);
-void* FileOpen(const char* fname, uint8_t mode);
-void FileClose(void* file);
-uint32_t FileReadWholeFile(void* file, uint8_t** ptr);
-void GetFileNameWithoutExtension(const char* fname, uint64_t inputSize, char* out);
+#define NFILE void*
+
+bool NFileExists(const char* fname);
+
+NFILE NFileOpen(const char* fname, uint8_t mode);
+void NFileClose(NFILE* file);
+
+int64_t NGetFileSize(NFILE file);
+int64_t NReadWholeFile(NFILE file, void* destination, int64_t destionationSize);
+int64_t NReadFile(NFILE file, void* destionation, int64_t destionationSize, int64_t length);
 
 #ifdef __cplusplus
 }

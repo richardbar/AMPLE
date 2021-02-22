@@ -43,7 +43,7 @@ ArgumentType argsTypes[] = {
         { .longType = "url", .shortType = NULL, .isOnlyArgument = false, .hasValue = true },
 };
 
-bool HandleArgs(int argNum, char** argPtr, int* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize)
+bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize)
 {
     if (argNum == 0)
     {
