@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "AMPLE.h"
+
 #if defined(__LINUX__) || defined(__APPLE__)
     #include <pwd.h>
     #include <sys/types.h>
     #include <unistd.h>
 #endif
-
-#include "AMPLE.h"
 
 #include "Directory.h"
 

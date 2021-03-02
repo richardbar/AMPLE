@@ -6,6 +6,7 @@
 #include "argProcessor.h"
 
 
+uint8_t endian = VOODOO_ENDIAN_D;
 bool initialized = false;
 bool* notClearMemory = NULL;
 bool* printRegisters = NULL;
@@ -15,9 +16,30 @@ int32_t exitCode = -1;
 int64_t* memorySize = NULL;
 
 
+int GetEndian()
+{
+    char fNumber[] = { 0x01, 0x02, 0x03, 0x04,
+                       0x05, 0x06, 0x07, 0x08 };
+    uint64_t sNumber = 0x0102030405060708;
+
+    if (*((uint64_t*)fNumber) == sNumber)
+        return BIG_ENDIAN_D;
+    else if (*((uint64_t*)fNumber) == ConvertEndianU64(sNumber))
+        return LITTLE_ENDIAN_D;
+    else
+        return VOODOO_ENDIAN_D;
+}
+
 void HandleInitialization(int argc, char** argv)
 {
     initialized = false;
+
+    endian = GetEndian();
+    if (endian == VOODOO_ENDIAN_D)
+    {
+        fprintf(stderr, "An unrecognized endian was captured");
+        return;
+    }
 
     notClearMemory = (bool*)malloc(sizeof(bool));
     if (!notClearMemory)

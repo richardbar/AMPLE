@@ -1,3 +1,5 @@
+#if defined(__WITH_INSTALL__)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -97,3 +99,5 @@ bool Download(uint8_t type, const char* name, const char* url)
 
     return true;
 }
+
+#endif

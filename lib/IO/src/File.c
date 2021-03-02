@@ -1,160 +1,160 @@
+#include "AMPLE.h"
+
 #include "File.h"
 
 #include <stdint.h>
+#if defined(__GNUC__)
+    #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "AMPLE.h"
 
+#if defined(__WINDOWS__)
+    #include <windows.h>
+#endif
+
 typedef struct
 {
-    bool initialized;
+    int64_t uniqueID;
     char* fname;
     int64_t fnameLength;
     uint8_t mode;
+    bool open;
     FILE* fptr;
+    uint64_t position;
 } FileStruct;
+
+FileStruct* openFiles = NULL;
+uint64_t openFilesCount = 0;
+uint64_t openFilesSize = 0;
+
+int64_t currentUniqueID = 3;
+
+static bool InitializeNFile()
+{
+    openFilesCount = 1;
+    openFiles = (FileStruct*)malloc(openFilesCount * sizeof(FileStruct));
+    if (!openFiles)
+    {
+        openFilesCount = 0;
+        return false;
+    }
+
+    return true;
+}
+
+static bool doubleOpenFiles()
+{
+    if (!openFiles && !InitializeNFile())
+        return false;
+
+    openFilesCount *= 2;
+    FileStruct* temp = (FileStruct*)realloc(openFiles, openFilesCount * sizeof(FileStruct));
+    if (!temp)
+    {
+        openFilesCount /= 2;
+        return false;
+    }
+    openFiles = temp;
+    return true;
+}
 
 
 NFILE NFileOpen(const char* fname, uint8_t mode)
 {
-    if (fname == NULL || mode == 0)
-        return NULL;
+    if ((!openFiles && !InitializeNFile()) || ((openFilesSize + 1 > openFilesCount) && !doubleOpenFiles()))
+        return -1;
 
     char fmode[4] = { 0x00, 0x00, 0x00, 0x00 };
-    uint32_t bcounter = 1;
-
+    uint8_t bcounter = 0;
     if (mode & FILE_WRITE)
-        fmode[0] = 'w';
+        fmode[bcounter++] = 'w';
     else if (mode & FILE_READ)
-        fmode[0] = 'r';
+        fmode[bcounter++] = 'r';
     else
-        return NULL;
+        fmode[bcounter++] = 0x00;
 
     if (mode & FILE_APPEND)
         fmode[bcounter++] = 'a';
-
     if (mode & FILE_BINARY)
         fmode[bcounter] = 'b';
 
+    FILE* fptr;
 #if defined(__WINDOWS__)
-    FILE* fptr = NULL;
-    errno_t  errorCode = fopen_s(&fptr, fname, fmode);
+    errno_t errorCode = fopen_s(&fptr, fname, fmode);
     if (errorCode)
-        return NULL;
+        return -1;
 #elif defined(__LINUX__) || defined(__APPLE__)
-    FILE* fptr = fopen(fname, fmode);
+    fptr = fopen(fname, fmode);
     if (!fptr)
-        return NULL;
+        return -1;
 #endif
 
-    FileStruct* returnVal = (FileStruct*)malloc(sizeof(FileStruct));
-    if (!returnVal)
+    FileStruct temp = openFiles[openFilesSize++];
+
+    temp.uniqueID += currentUniqueID++;
+
+    temp.fnameLength = strlen(fname) + 1;
+    temp.fname = (char*)malloc(temp.fnameLength * sizeof(char));
+    if (!temp.fname)
     {
-        fclose(fptr);
-        fptr = NULL;
-        return NULL;
+        currentUniqueID--;
+        openFilesSize--;
+        return -1;
     }
-    memset(returnVal, 0, sizeof(FileStruct));
+    memcpy(temp.fname, fname, temp.fnameLength);
+    temp.fname[temp.fnameLength] = 0;
 
-    returnVal->fnameLength = strlen(fname) + 1;
-    returnVal->fname = (char*)malloc(returnVal->fnameLength * sizeof(char));
-    if (!returnVal->fname)
-    {
-        free(returnVal);
-        returnVal = NULL;
+    temp.mode = mode;
 
-        fclose(fptr);
-        fptr = NULL;
+    temp.open = true;
 
-        return NULL;
-    }
-    memset(returnVal->fname, 0, returnVal->fnameLength * sizeof(char));
-    memcpy(returnVal->fname, fname, (returnVal->fnameLength - 1) * sizeof(char));
+    temp.fptr = fptr;
 
-    returnVal->mode = mode;
-    returnVal->fptr = fptr;
-    returnVal->initialized = true;
+    temp.position = 0;
 
-
-    return (NFILE)returnVal;
+    return temp.uniqueID;
 }
 
 void NFileClose(NFILE* file)
 {
-    if (!file)
-        return;
-
-    FileStruct* fileStruct = (FileStruct*)file;
-    if (!fileStruct->initialized)
-        return;
-
-    fileStruct->initialized = false;
-    if (fileStruct->fname)
-    {
-        free(fileStruct->fname);
-        fileStruct->fname = NULL;
-    }
-    fileStruct->fnameLength = 0;
-
-    if (fileStruct->fptr)
-    {
-        free(fileStruct->fptr);
-        fileStruct->fptr = NULL;
-    }
-
-    fileStruct->mode = 0;
 }
 
 bool NFileExists(const char* fname)
 {
-    NFILE fptr = NFileOpen(fname, FILE_READ);
-    if (fptr)
-    {
-        NFileClose(&fptr);
-        return true;
-    }
-    else
+    FILE* fptr;
+#if defined(__WINDOWS__)
+    errno_t errorCode = fopen_s(&fptr, fname, "r");
+    if (errorCode)
         return false;
+#elif defined(__LINUX__) || defined(__APPLE__)
+    fptr = fopen(fname, "r");
+    if (!fptr)
+        return false;
+#endif
+    fclose(fptr);
+    return true;
 }
 
 int64_t NGetFileSize(NFILE file)
 {
-    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
-        return -1;
-
-    fpos_t pFile;
-    fgetpos(((FileStruct*)file)->fptr, &pFile);
-
-    fseek(((FileStruct*)file)->fptr, 0L, SEEK_END);
-    int64_t size = ftell(((FileStruct*)file)->fptr);
-    fsetpos(((FileStruct*)file)->fptr, &pFile);
-
-    return size;
 }
 
 int64_t NReadWholeFile(NFILE file, void* destination, int64_t destionationSize)
 {
-    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
-        return -1;
-
-    int64_t size = NGetFileSize(file);
-    if (!destination)
-        return size;
-
-    if (destionationSize < size)
-        return -1;
-
-    fseek(((FileStruct*)file)->fptr, 0, SEEK_SET);
-    return NReadFile(file, destination, size, size);
 }
 
 int64_t NReadFile(NFILE file, void* destionation, int64_t destionationSize, int64_t length)
 {
-    if (!file || !((FileStruct*)file)->initialized || !((FileStruct*)file)->fptr)
-        return -1;
+}
 
-    int64_t sizeToBeRead = (length < destionationSize) ? length : destionationSize;
-    return fread(destionation, 1, sizeToBeRead, ((FileStruct*)file)->fptr);
+void FCloseAllFiles()
+{
+#if defined(__WINDOWS__)
+    _fcloseall();
+#elif defined(__GNUC__)
+#endif
 }

@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #if  (  defined(_WIN32)    || \
         defined(__WIN32__) || \
@@ -98,5 +99,44 @@
     #define INLINE inline
 #else
 #endif
+
+
+#pragma ar
+#define BIG_ENDIAN_D 0
+#define LITTLE_ENDIAN_D 1
+#define VOODOO_ENDIAN_D 1
+
+INLINE uint16_t ConvertEndianU16(uint16_t input)
+{
+    return (input << 8) | (input >> 8);
+}
+INLINE int16_t ConvertEndian16(int16_t input)
+{
+    return (input << 8) | ((input >> 8) & 0xFF);
+}
+
+INLINE uint32_t ConvertEndianU32(uint32_t input)
+{
+    uint32_t intermediateVal = ((input << 8) & 0xFF00FF00) | ((input >> 8) & 0xFF00FF);
+    return (intermediateVal << 16) | (intermediateVal >> 16);
+}
+INLINE int32_t ConvertEndian32(int32_t input)
+{
+    int32_t intermediateVal = ((input << 8) & 0xFF00FF00) | ((input >> 8) & 0xFF00FF);
+    return (intermediateVal << 16) | ((intermediateVal >> 16) & 0xFFFF);
+}
+
+INLINE uint64_t ConvertEndianU64(uint64_t input)
+{
+    uint64_t intermediateVal1 = ((input << 8) & 0xFF00FF00FF00FF00ULL) | ((input >> 8) & 0x00FF00FF00FF00FFULL);
+    uint64_t intermediateVal2 = ((intermediateVal1 << 16) & 0xFFFF0000FFFF0000ULL) | ((intermediateVal1 >> 16) & 0x0000FFFF0000FFFFULL);
+    return (intermediateVal2 << 32) | (intermediateVal2 >> 32);
+}
+INLINE int64_t ConvertEndian64(int64_t input)
+{
+    int64_t intermediateVal1 = ((input << 8) & 0xFF00FF00FF00FF00ULL) | ((input >> 8) & 0x00FF00FF00FF00FFULL);
+    int64_t intermediateVal2 = ((intermediateVal1 << 16) & 0xFFFF0000FFFF0000ULL) | ((intermediateVal1 >> 16) & 0x0000FFFF0000FFFFULL);
+    return (intermediateVal2 << 32) | ((intermediateVal2 >> 32) & 0xFFFFFFFFULL);
+}
 
 size_t GetEnvirontment(const char* name, char* destination);
