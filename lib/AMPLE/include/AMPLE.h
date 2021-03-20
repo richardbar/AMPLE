@@ -101,7 +101,6 @@
 #endif
 
 
-#pragma ar
 #define BIG_ENDIAN_D 0
 #define LITTLE_ENDIAN_D 1
 #define VOODOO_ENDIAN_D 1

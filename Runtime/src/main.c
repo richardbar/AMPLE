@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "File.h"
+
 #include "argProcessor.h"
 
 
@@ -55,6 +57,8 @@ void HandleInitialization(int argc, char** argv)
 
     HandleArgs(argc, argv, &exitCode, notClearMemory, printRegisters, memorySize);
 
+    NFileInitialize();
+
     initialized = true;
 }
 
@@ -77,6 +81,8 @@ void HandleCleanup()
         free(memorySize);
         memorySize = NULL;
     }
+
+    NFileCleanUp();
 
     CleanArguments();
 }
