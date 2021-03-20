@@ -27,11 +27,13 @@ int main(int argc, char** argv)
     uint8_t* fileContent = NULL;
     uint32_t fileContentSize;
 
-    FILE* fptr = FileOpen(argv[1], FILE_READ);
-    fileContentSize = FileReadWholeFile(fptr, &fileContent);
-    FileClose(fptr);
+    NFILE fptr = NFileOpen(argv[1], NFILE_READ);
+    fileContentSize = NFileGetFileSize(fptr);
+    fileContent = (uint8_t*)malloc((fileContentSize + 1) * sizeof(uint8_t));
+    NFileReadFile(fptr, fileContent, fileContentSize);
+    NFileClose(fptr);
 
-    fptr = FileOpen("Out.ample", FILE_WRITE | FILE_BINARY);
+    fptr = NFileOpen("out.ample", NFILE_WRITE | NFILE_BINARY);
 
     if (!fileContent)
     {
@@ -61,6 +63,6 @@ int main(int argc, char** argv)
     }
 
     free(fileContent);
-    FileClose(fptr);
+    NFileClose(fptr);
     return 0;
 }

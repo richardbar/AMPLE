@@ -164,7 +164,7 @@ int64_t NFileGetFileSize(NFILE file) {
 #elif defined(__LINUX__) || defined(__APPLE__)
 	fseeko(fs->fptr, 0L, SEEK_END);
 	size = ftello(fs->fptr);
-	fseek0(fs->fptr, 0L, SEEK_SET);
+	fseeko(fs->fptr, 0L, SEEK_SET);
 #endif
 
 	return size;
@@ -191,7 +191,7 @@ int64_t NFileWriteFile(NFILE file, void* source, int64_t sourceSize) {
 }
 
 
-void FCloseAllFiles() {
+void NFileCloseAllFiles() {
 	if (!openFiles)
 		return;
 
@@ -219,7 +219,7 @@ void NFileCleanUp() {
 	if (!openFiles)
 		return;
 
-	FCloseAllFiles();
+	NFileCloseAllFiles();
 
 	openFilesCount = 0;
 	free(openFiles);

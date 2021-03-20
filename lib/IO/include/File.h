@@ -77,7 +77,7 @@ int64_t NFileWriteFile(NFILE file, void* source, int64_t sourceSize);
  * Closes all the files opened by NFileOpen
  * Note that the previously opened files can not be used.
  */
-void FCloseAllFiles();
+void NFileCloseAllFiles();
 
 /**
  * De initialize the NFile Library

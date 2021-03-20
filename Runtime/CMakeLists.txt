@@ -5,7 +5,10 @@ project(AMPLE-Runtime VERSION "0.2.1")
 set(CMAKE_C_STANDARD 99)
 
 
+if (CMAKE_TOOLCHAIN_FILE)
 find_package(CURL CONFIG REQUIRED)
+add_definitions(-D__WITH_INSTALL__)
+endif()
 
 
 configure_file(include/stdAMPLE.h.in include/stdAMPLE.h @ONLY NEWLINE_STYLE CRLF)
@@ -29,7 +32,9 @@ target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)
 
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 
+if (CMAKE_TOOLCHAIN_FILE)
 target_link_libraries(${PROJECT_NAME} CURL::libcurl)
+endif()
 
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
