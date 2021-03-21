@@ -37,11 +37,13 @@ ArgumentType argsTypes[] = {
         { .longType = "printRegisters", .shortType = "p", .isOnlyArgument = false, .hasValue = false },
         { .longType = "notClearMemoryAndRegisters", .shortType = "c", .isOnlyArgument = false, .hasValue = false },
         { .longType = "memory", .shortType = NULL, .isOnlyArgument = false, .hasValue = true },
-        { .longType = "AMPLEBinaryVersion", .shortType = NULL, .isOnlyArgument = false, .hasValue = true },
         { .longType = "install", .shortType = "i", .isOnlyArgument = false, .hasValue = false },
         { .longType = "runtime", .shortType = NULL, .isOnlyArgument = false, .hasValue = true },
         { .longType = "url", .shortType = NULL, .isOnlyArgument = false, .hasValue = true },
 };
+
+uint32_t CurrentFile = 0;
+int64_t MaxFiles = -1;
 
 bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize)
 {
@@ -52,43 +54,43 @@ bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMem
         return false;
     }
 
-    if (!InitializeArgumentParser())
+    if (!ArgumentParserInitialize())
     {
         fprintf(stderr, "Error while initializing argument parser\n");
         return false;
     }
 
-    if (!AddArgumentTypes(&(argsTypes[0]), sizeof(argsTypes) / sizeof(argsTypes[0])))
+    if (!ArgumentParserAddArgumentTypes(&(argsTypes[0]), sizeof(argsTypes) / sizeof(argsTypes[0])))
     {
         fprintf(stderr, "Error adding Argument Types to Argument parser\n");
         return false;
     }
-    if (!ParseArguments(argPtr, argNum, false))
+    if (!ArgumentParserParseArguments(argPtr, argNum, false))
     {
         fprintf(stderr, "Error parsing arguments\n");
         return false;
     }
 
-    if (ContainsArgument("help"))
+    if (ArgumentParserContainsArgument("help"))
     {
         PRINT_HELP();
         *_exitCode = 0;
         return false;
     }
-    if (ContainsArgument("version"))
+    if (ArgumentParserContainsArgument("version"))
     {
         PRINT_VERSION();
         *_exitCode = 0;
         return false;
     }
-    if (ContainsArgument("notClearMemoryAndRegisters"))
+    if (ArgumentParserContainsArgument("notClearMemoryAndRegisters"))
         *notClearMemoryAndRegisters = true;
-    if (ContainsArgument("printRegisters"))
+    if (ArgumentParserContainsArgument("printRegisters"))
         *printRegisters = true;
-    if (ContainsArgument("memory"))
+    if (ArgumentParserContainsArgument("memory"))
     {
         int64_t memory;
-        GetArgumentValueINT64("memory", &memory);
+        ArgumentParserGetArgumentValueINT64("memory", &memory);
         if (memory < 0)
         {
             fprintf(stderr, "Memory argument can not be negative\n");
@@ -99,10 +101,28 @@ bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMem
         *memorySize = memory;
     }
 
+    MaxFiles = ArgumentParserGetNumberOfFiles();
+
     return true;
+}
+
+int32_t GetNextFile(char** fname) {
+    if (MaxFiles < 0)
+        return -1;
+
+    if (CurrentFile >= MaxFiles)
+        return -1;
+
+    uint32_t fileNameSize = ArgumentParserGetFileNameLength(CurrentFile);
+    *fname = (char*)malloc((fileNameSize + 1) * sizeof(char));
+    if (!*fname)
+        return -1;
+    memset(*fname, 0, (fileNameSize + 1) * sizeof(char));
+    ArgumentParserGetFileName(CurrentFile++, *fname, fileNameSize);
+    return fileNameSize;
 }
 
 void CleanArguments()
 {
-    CleanupArgumentParser();
+    ArgumentParserCleanup();
 }

@@ -175,9 +175,14 @@ int64_t NFileReadFile(NFILE file, void* destination, int64_t destinationSize) {
 	if (!openFiles || !fs || !fs->open)
 		return -1;
 
-	int64_t change = fread(destination, destinationSize, destinationSize, fs->fptr);
-	fs->position += change;
-	return change;
+    int64_t oldPosition = fs->position;
+	fread(destination, destinationSize, destinationSize, fs->fptr);
+#if defined(__WINDOWS__)
+	fs->position = _ftelli64(fs->fptr);;
+#elif defined(__LINUX__) || defined(__APPLE__)
+	fs->position = ftello(fs->fptr);
+#endif
+	return fs->position - oldPosition;
 }
 
 int64_t NFileWriteFile(NFILE file, void* source, int64_t sourceSize) {
@@ -185,9 +190,14 @@ int64_t NFileWriteFile(NFILE file, void* source, int64_t sourceSize) {
 	if (!openFiles || !fs || !fs->open)
 		return -1;
 
-	int64_t change = fwrite(source, sourceSize, sourceSize, fs->fptr);
-	fs->position += change;
-	return change;
+    int64_t oldPosition = fs->position;
+    fwrite(source, sourceSize, sourceSize, fs->fptr);
+#if defined(__WINDOWS__)
+    fs->position = _ftelli64(fs->fptr);;
+#elif defined(__LINUX__) || defined(__APPLE__)
+    fs->position = ftello(fs->fptr);
+#endif
+    return fs->position - oldPosition;
 }
 
 

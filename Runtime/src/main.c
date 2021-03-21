@@ -36,12 +36,14 @@ void HandleInitialization(int argc, char** argv)
 {
     initialized = false;
 
+    NFileInitialize();
+
     endian = GetEndian();
-    if (endian == VOODOO_ENDIAN_D)
+    /*if (endian == VOODOO_ENDIAN_D)
     {
         fprintf(stderr, "An unrecognized endian was captured");
         return;
-    }
+    }*/
 
     notClearMemory = (bool*)malloc(sizeof(bool));
     if (!notClearMemory)
@@ -56,8 +58,6 @@ void HandleInitialization(int argc, char** argv)
         return;
 
     HandleArgs(argc, argv, &exitCode, notClearMemory, printRegisters, memorySize);
-
-    NFileInitialize();
 
     initialized = true;
 }
@@ -113,6 +113,14 @@ int main(int argc, char** argv)
         ExitAMPLE();
     }
 
+    while (true) {
+        char* fname = NULL;
+        int32_t fnameSize = GetNextFile(&fname);
+        if (fnameSize == -1)
+            break;
+
+        printf("%s\n", fname);
+    }
 
 
     exitCode = 0;

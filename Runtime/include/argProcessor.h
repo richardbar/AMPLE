@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "AMPLE.h"
 #include "CList.h"
@@ -20,6 +21,13 @@ typedef struct
  * @return Returns true if program can continue and false if not
  */
 bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMemoryAndRegisters, bool* printRegisters, int64_t* memorySize);
+
+/**
+ * Get the next filename
+ * @param fname Output filename
+ * @return Upon success returns sizeof filename and -1 upon failure
+ */
+int32_t GetNextFile(char** fname);
 
 /**
  * Clean up Arguments from library.

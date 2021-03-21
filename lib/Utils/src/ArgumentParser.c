@@ -1,115 +1,138 @@
 #include "ArgumentParser.h"
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "AMPLE.h"
 #include "File.h"
+
+
+#define PRINT_IF_NOT_SILENT(stream, ...)        \
+    if (!silent)                                \
+        fprintf(stream, __VA_ARGS__)
 
 
 typedef struct
 {
     const char* name;
-    int64_t nameLength;
+    uint64_t nameLength;
     const char* value;
-    int64_t valueLength;
-    uint32_t position;
+    uint64_t valueLength;
+    uint64_t position;
 } ArgumentEntry;
 
 typedef struct
 {
     const char* fname;
-    int64_t fnameLength;
+    uint64_t position;
 } FileEntry;
 
-static ArgumentType* argumentTypes = NULL;
-static int64_t argumentTypeLength = -1;
-static uint32_t argumentTypeIndex = 0;
 
-static ArgumentEntry* argumentEntries = NULL;
-static int64_t argumentEntryLength = -1;
-static uint32_t argumentEntryIndex = 0;
+ArgumentType* argumentTypes = NULL;
+int64_t argumentTypeCount = -1;
+int64_t argumentTypeSize = 0;
 
-static FileEntry* fileEntries = NULL;
-static int64_t argumentFileEntryLength = -1;
-static uint32_t argumentFileEntryIndex = 0;
+ArgumentEntry* argumentEntries = NULL;
+int64_t argumentEntryCount = -1;
+int64_t argumentEntrySize = 0;
 
-static bool isArgumentParserInitialized = false;
+FileEntry* fileEntries = NULL;
+int64_t fileEntryCount = -1;
+int64_t fileEntrySize = 0;
+
+bool isArgumentParserInitialized = false;
 
 
-static bool DoubleArgumentTypesLength()
-{
-    if (!isArgumentParserInitialized || !argumentTypes || argumentTypeLength <= 0)
+/**
+ * Doubles the length of the arugmentTypes array and zeroes the new entries
+ * @return true upon success and false upon failure
+ */
+bool ArgumentParserDoubleArgumentTypesLength() {
+    if (!argumentTypes || argumentTypeCount == -1 || !isArgumentParserInitialized)
         return false;
 
-    int64_t oldArgumentTypeLength = argumentTypeLength;
-    argumentTypeLength *= 2;
-
-    ArgumentType* oldPtr = argumentTypes;
-    argumentTypes = (ArgumentType*)realloc(argumentTypes, argumentTypeLength * sizeof(ArgumentType));
-    if (!argumentTypes)
-    {
-        argumentTypes = oldPtr;
-        argumentTypeLength = oldArgumentTypeLength;
+    uint64_t newArgumentTypeCount = argumentTypeCount * 2;
+    if (newArgumentTypeCount < argumentTypeCount)               // Overflow
         return false;
-    }
 
-    memset(&(argumentTypes[oldArgumentTypeLength]), 0, (argumentTypeLength - oldArgumentTypeLength) * sizeof(ArgumentType));
+    ArgumentType* newArgumentTypes = (ArgumentType*)realloc(argumentTypes, newArgumentTypeCount * sizeof(ArgumentType));
+    if (!newArgumentTypes)                                      // Out of memory
+        return false;
+
+    memset(&(newArgumentTypes[argumentTypeCount]), 0x00, argumentTypeCount * sizeof(ArgumentType));
+
+    argumentTypes = newArgumentTypes;
+    argumentTypeCount = newArgumentTypeCount;
 
     return true;
 }
 
-static bool DoubleArgumentEntriesLength()
-{
-    if (!isArgumentParserInitialized || !argumentEntries || argumentEntryLength <= 0)
+/**
+ * Doubles the length of the arugmentEntries array and zeroes the new entries
+ * @return true upon success and false upon failure
+ */
+bool ArgumentParserDoubleArgumentEntriesLength() {
+    if (!argumentEntries || argumentEntryCount == -1 || !isArgumentParserInitialized)
         return false;
 
-    int64_t oldArgumentEntryLength = argumentEntryLength;
-    argumentEntryLength *= 2;
-
-    ArgumentEntry* oldPtr = argumentEntries;
-    argumentEntries = (ArgumentEntry*)realloc(argumentEntries, argumentEntryLength * sizeof(ArgumentEntry));
-    if (!argumentEntries)
-    {
-        argumentEntries = oldPtr;
-        argumentEntryLength = oldArgumentEntryLength;
+    uint64_t newArgumentEntryCount = argumentEntryCount * 2;
+    if (newArgumentEntryCount < argumentEntryCount)             // Overflow
         return false;
-    }
 
-    memset(&(argumentEntries[oldArgumentEntryLength]), 0, (argumentEntryLength - oldArgumentEntryLength) * sizeof(ArgumentEntry));
+    ArgumentEntry* newArgumentEntries = (ArgumentEntry*)realloc(argumentEntries, newArgumentEntryCount * sizeof(ArgumentEntry));
+    if (!newArgumentEntries)                                    // Out of memory
+        return false;
+
+    memset(&(newArgumentEntries[argumentEntryCount]), 0x00, argumentEntryCount * sizeof(ArgumentEntry));
+
+    argumentEntries = newArgumentEntries;
+    argumentEntryCount = newArgumentEntryCount;
 
     return true;
 }
 
-static bool DoubleFileEntriesLength()
-{
-    if (!isArgumentParserInitialized || !fileEntries || argumentFileEntryLength <= 0)
+/**
+ * Doubles the length of the fileEntries array and zeroes the new entries
+ * @return true upon success and false upon failure
+ */
+bool ArgumentParserDoubleFileEntriesLength() {
+    if (!fileEntries || fileEntryCount == -1 || !isArgumentParserInitialized)
         return false;
 
-    int64_t oldFileEntryLength = argumentFileEntryLength;
-    argumentFileEntryLength *= 2;
-
-    FileEntry* oldPtr = fileEntries;
-    fileEntries = (FileEntry*)realloc(fileEntries, argumentFileEntryLength * sizeof(FileEntry));
-    if (!fileEntries)
-    {
-        fileEntries = oldPtr;
-        argumentFileEntryLength = oldFileEntryLength;
+    uint64_t newFileEntryCount = fileEntryCount * 2;
+    if (newFileEntryCount < fileEntryCount)                     // Overflow
         return false;
-    }
 
-    memset(&(fileEntries[oldFileEntryLength]), 0, (argumentFileEntryLength - oldFileEntryLength) * sizeof(FileEntry));
+    FileEntry* newFileEntries = (FileEntry*)realloc(fileEntries, newFileEntryCount * sizeof(FileEntry));
+    if (!newFileEntries)                                        // Out of memory
+        return false;
+
+    memset(&(newFileEntries[fileEntryCount]), 0x00, fileEntryCount * sizeof(FileEntry));
+
+    fileEntries = newFileEntries;
+    fileEntryCount = newFileEntryCount;
 
     return true;
 }
 
-static int64_t GetEntryIndex(const char* entryName)
-{
+
+/**
+ * Finds the index of an argument entry after parsing
+ * Also can be used to check if an argument was passed or not
+ * @param entryName C String of the argument entry to check if exists
+ * @return non negative int of index if found or -1 in case it is not found
+ */
+INLINE int64_t ArgumentParserGetEntryIndex(const char* entryName) {
     if (!isArgumentParserInitialized || !argumentEntries || !entryName)
         return -1;
 
-    for (uint32_t i = 0; i < argumentEntryLength; i++)
-    {
+    for (int64_t i = 0; i < argumentEntryCount; i++) {
+        if (!argumentEntries[i].name)
+            continue;
+
         if (strcmp(argumentEntries[i].name, entryName) == 0)
             return i;
     }
@@ -118,365 +141,296 @@ static int64_t GetEntryIndex(const char* entryName)
 }
 
 
-bool InitializeArgumentParser()
-{
-    if (isArgumentParserInitialized)
+/**
+ * Creates a FileEntry struct and adds it to the fileEntries array
+ * @param fname Name of the file
+ * @param position Position in the arguments passed to parse
+ * @return true upon success and false upon failure
+ */
+bool INLINE ArgumentParserInsertFileEntry(const char* fname, uint64_t position) {
+    if (!isArgumentParserInitialized || !fileEntries || !fname || fileEntryCount == -1 || !NFileExists(fname))
         return false;
 
-    argumentTypeLength = 1;
-    argumentTypes = (ArgumentType*)malloc(argumentTypeLength * sizeof(ArgumentType));
-    if (!argumentTypes)
-    {
-        argumentTypeLength = -1;
+    if (fileEntrySize >= fileEntryCount) {
+        if (!ArgumentParserDoubleFileEntriesLength())
+            return false;
+    }
 
+    FileEntry thisEntry = fileEntries[fileEntrySize];
+
+    uint64_t fnameLength = strlen(fname);
+
+    thisEntry.fname = (const char*)malloc((fnameLength + 1) * sizeof(const char));
+    if (!thisEntry.fname)
+        return false;
+    memcpy((char*)thisEntry.fname, fname, (fnameLength + 1) * sizeof(const char));
+
+    thisEntry.position = position;
+
+    fileEntrySize++;
+
+    return true;
+}
+
+
+bool ArgumentParserInitialize() {
+    if (isArgumentParserInitialized || argumentTypeCount != -1 || argumentEntryCount != -1 || fileEntryCount != -1)
+        return false;
+
+    argumentTypeCount = 1;
+    argumentTypes = (ArgumentType*)malloc(argumentTypeCount * sizeof(ArgumentType));
+    if (!argumentTypes) {
+        argumentTypeCount = -1;
         return false;
     }
-    memset(argumentTypes, 0, argumentTypeLength * sizeof(ArgumentType));
-    argumentTypeIndex = 0;
+    memset(argumentTypes, 0x00, argumentTypeCount * sizeof(ArgumentType));
+    argumentTypeSize = 0;
 
-    argumentEntryLength = 1;
-    argumentEntries = (ArgumentEntry*)malloc(argumentEntryLength * sizeof(ArgumentEntry));
-    if (!argumentEntries)
-    {
-        free((void*)argumentTypes);
+    argumentEntryCount = 1;
+    argumentEntries = (ArgumentEntry*)malloc(argumentEntryCount * sizeof(ArgumentEntry));
+    if (!argumentEntries) {
+        free((void *) argumentTypes);
         argumentTypes = NULL;
-        argumentTypeLength = -1;
+        argumentTypeCount = -1;
 
-        argumentEntryLength = -1;
-
+        argumentEntryCount = -1;
         return false;
     }
-    memset(argumentEntries, 0, argumentEntryLength * sizeof(ArgumentEntry));
-    argumentEntryIndex = 0;
+    memset(argumentEntries, 0, argumentEntryCount * sizeof(ArgumentEntry));
+    argumentEntrySize = 0;
 
-    argumentFileEntryLength = 1;
-    fileEntries = (FileEntry*)malloc(argumentFileEntryLength * sizeof(FileEntry));
-    if (!fileEntries)
-    {
+    fileEntryCount = 1;
+    fileEntries = (FileEntry*)malloc(fileEntryCount * sizeof(FileEntry));
+    if (!fileEntries) {
         free((void*)argumentTypes);
         argumentTypes = NULL;
-        argumentTypeLength = -1;
+        argumentTypeCount = -1;
 
         free((void*)argumentEntries);
         argumentEntries = NULL;
-        argumentEntryLength = -1;
+        argumentEntryCount = -1;
 
+        fileEntryCount = -1;
         return false;
     }
-    memset(fileEntries, 0, argumentFileEntryLength * sizeof(FileEntry));
-    argumentFileEntryIndex = 0;
+    memset(fileEntries, 0, fileEntryCount * sizeof(FileEntry));
+    fileEntrySize = 0;
 
     isArgumentParserInitialized = true;
     return true;
 }
 
-bool AddArgumentTypes(ArgumentType* argsType, uint32_t numberOfArgumentTypes)
-{
-    if (!isArgumentParserInitialized || !argumentTypes || !argsType)
+
+bool ArgumentParserAddArgumentType(ArgumentType* argType) {
+    if (!isArgumentParserInitialized || !argumentTypes || !argType || argumentTypeCount == -1)
         return false;
 
-    for (uint32_t i = 0; i < numberOfArgumentTypes; i++)
-    {
-        if (argumentTypeIndex + 1 > argumentTypeLength)
-        {
-            if (!DoubleArgumentTypesLength())
-                return false;
-        }
+    if (argumentTypeSize >= argumentTypeCount) {
+        if (!ArgumentParserDoubleArgumentTypesLength())
+            return false;
+    }
 
-        ArgumentType* temp = (ArgumentType*)malloc(sizeof(ArgumentType));
+    ArgumentType thisType = argumentTypes[argumentTypeSize];
 
-        if (argsType[i].longType)
-        {
-            uint32_t longTypeLength = strlen(argsType[i].longType);
-            temp->longType = (const char*)malloc((longTypeLength + 1) * sizeof(const char));
-            if (!temp->longType)
-            {
-                free((void*)temp);
-                temp = NULL;
+    if (argType->longType) {
+        uint64_t longTypeLength = strlen(argType->longType);
 
-                return false;
+        thisType.longType = (const char*) malloc((longTypeLength + 1) * sizeof(const char));
+        if (!thisType.longType)
+            return false;
+        memcpy((char*) thisType.longType, argType->longType, (longTypeLength + 1) * sizeof(const char));
+    }
+
+    if (argType->shortType) {
+        uint64_t shortTypeLength = strlen(argType->shortType);
+
+        thisType.shortType = (const char*) malloc((shortTypeLength + 1) * sizeof(const char));
+        if (!thisType.shortType) {
+            if (thisType.longType) {
+                free((void *) thisType.longType);
+                thisType.longType = NULL;
             }
-            memset((char*)(temp->longType), 0, (longTypeLength + 1) * sizeof(const char));
-            memcpy((char*)(temp->longType), argsType[i].longType, longTypeLength);
+            return false;
         }
+        memcpy((char*) thisType.shortType, argType->shortType, (shortTypeLength + 1) * sizeof(const char));
+    }
 
-        if (argsType[i].shortType)
-        {
-            uint32_t shortTypeLength = strlen(argsType[i].shortType);
-            temp->shortType = (const char*)malloc((shortTypeLength + 1) * sizeof(const char));
-            if (!temp->shortType)
-            {
-                free((void*)(temp->longType));
-                temp->longType = NULL;
+    thisType.hasValue = argType->hasValue;
+    thisType.isOnlyArgument = argType->isOnlyArgument;
 
-                free((void*)temp);
-                temp = NULL;
+    argumentTypeSize++;
 
-                return false;
-            }
-            memset((char*)(temp->shortType), 0, (shortTypeLength + 1) * sizeof(const char));
-            memcpy((char*)(temp->shortType), argsType[i].shortType, shortTypeLength);
-        }
+    return true;
+}
 
-        temp->hasValue = argsType[i].hasValue;
-        temp->isOnlyArgument = argsType[i].isOnlyArgument;
+bool ArgumentParserAddArgumentTypes(ArgumentType* argsType, int64_t numberOfArgumentTypes) {
+    if (!isArgumentParserInitialized || !argumentTypes || !argsType || numberOfArgumentTypes < 0 || argumentTypeCount == -1)
+        return false;
 
-        memcpy(&(argumentTypes[argumentTypeIndex++]), temp, sizeof(ArgumentType));
-
-        free(temp);
-        temp = NULL;
+    for (int64_t i = 0; i < numberOfArgumentTypes; i++) {
+        if (!ArgumentParserAddArgumentType(&(argsType[i])))
+            return false;
     }
 
     return true;
 }
 
-bool ParseArguments(char** arguments, uint32_t numberOfArguments, bool silent)
-{
-    if (numberOfArguments == 0)
-    {
-        if (!silent)
-            fprintf(stderr, "No arguments passed");
+
+bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, bool silent) {
+    if (!isArgumentParserInitialized || !argumentTypes || !arguments || !argumentEntries || argumentEntryCount == -1 || !fileEntries || fileEntryCount == -1 || argumentTypeCount == -1) {
+        PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: AMPLE Argument Parser has not been initialized\n");
+        return false;
+    }
+
+    if (numberOfArguments == 0) {
+        PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: No arguments were parsed\n");
         return false;
     }
 
     bool onlyArgumentFound = false;
 
-    for (uint32_t i = 0; i < numberOfArguments; i++)
-    {
-        uint32_t sizeOfArgument = strlen(arguments[i]);
-        if (sizeOfArgument < 2)
-        {
-            if (!silent)
-                fprintf(stderr, "Argument \"%s\" can not be parsed", arguments[i]);
+    for (uint64_t i = 0; i < numberOfArguments; i++) {
+        uint64_t sizeOfArgument = strlen(arguments[i]);
+        if (sizeOfArgument < 2) {
+            PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not parse \"%s\". Too short\n", arguments[i]);
             return false;
         }
 
-        // Option
-        if (arguments[i][0] == '-')
-        {
-            if (argumentEntryIndex + 1 > argumentEntryLength)
-            {
-                if (!DoubleArgumentEntriesLength())
+        // Option detected
+        if (arguments[i][0] == '-') {
+            if (argumentEntrySize >= argumentEntryCount) {
+                if (!ArgumentParserDoubleArgumentEntriesLength()) {
+                    PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not extend the argumentEntry array\n");
                     return false;
-            }
-
-            bool found = false;
-            // Long Option
-            if (arguments[i][1] == '-')
-            {
-                bool hasValue = false;
-                char* argName = &(arguments[i][2]);
-                char* argValue = NULL;
-
-                for (uint32_t j = 0; true; j++)
-                {
-                    if (argName[j] == '\0')
-                        break;
-                    else if (argName[j] == '=')
-                    {
-                        hasValue = true;
-                        argName[j] = '\0';
-                        argValue = &(argName[j + 1]);
-                    }
                 }
+            }
+            ArgumentEntry thisEntry = argumentEntries[argumentEntrySize];
 
-                for (uint32_t j = 0; j < argumentTypeIndex; j++)
-                {
+            // Long Option
+            if (arguments[i][1] == '-') {
+                int64_t argumentLength = strlen(&(arguments[i][2]));
+                for (int64_t j = 0; j < argumentTypeSize; j++) {
                     if (!argumentTypes[j].longType)
                         continue;
-                    if (strcmp(argumentTypes[j].longType, argName) == 0)
-                    {
-                        found = true;
 
-                        ArgumentEntry* temp = (ArgumentEntry*)malloc(sizeof(ArgumentEntry));
-                        if (!temp)
-                        {
-                            return false;
-                        }
-                        memset(temp, 0, sizeof(ArgumentEntry));
-
-                        temp->nameLength = strlen(argumentTypes[j].longType) + 1;
-                        temp->name = (const char*)malloc(temp->nameLength * sizeof(char));
-                        if (!temp->name)
-                        {
-                            free(temp);
-                            temp = NULL;
-
-                            return false;
-                        }
-                        memset((void*)(temp->name), 0, temp->nameLength * sizeof(char));
-                        memcpy((char*)(temp->name), (const void*)(argumentTypes[j].longType), temp->nameLength - 1);
-
-                        if (argumentTypes[j].hasValue && hasValue)
-                        {
-                            temp->valueLength = strlen(argValue) + 1;
-                            temp->value = (const char*)malloc(temp->valueLength * sizeof(const char*));
-                            if (!temp->value)
-                            {
-                                free((void*)temp->name);
-                                temp->name = NULL;
-
-                                free(temp);
-                                temp = NULL;
-
-                                return false;
-                            }
-                            memset((void*)(temp->value), 0, temp->valueLength * sizeof(char));
-                            memcpy((void*)(temp->value), (const void*)(argValue), temp->valueLength - 1);
-                        }
-                        else
-                            temp->valueLength = -1;
-
-                        temp->position = argumentEntryIndex + 1;
-
-                        memcpy(&(argumentEntries[argumentEntryIndex++]), temp, sizeof(ArgumentEntry));
-
-                        free(temp);
-                        temp = NULL;
-
+                    int64_t longTypeLength = strlen(argumentTypes[j].longType);
+                    if (longTypeLength > argumentLength)
+                        continue;
+                    if (memcmp(argumentTypes[j].longType, &(arguments[i][2]), longTypeLength) == 0) {
                         if (argumentTypes[j].isOnlyArgument)
                             onlyArgumentFound = true;
+
+                        thisEntry.name = argumentTypes[j].longType;
+                        thisEntry.nameLength = strlen(argumentTypes[j].longType);
+                        thisEntry.position = i;
+                        if (!argumentTypes[j].hasValue) {
+                            thisEntry.value = NULL;
+                            thisEntry.valueLength = 0;
+                        }
+                        else {
+                            bool hasValue = false;
+                            char* argValue = NULL;
+
+                            for (int64_t k = 2; true; k++) {
+                                if (arguments[i][k] == '\0')
+                                    break;
+                                else if (arguments[i][k] == '=') {
+                                    hasValue = true;
+                                    argValue = &(arguments[i][k + 1]);
+                                }
+                            }
+
+                            if (!hasValue) {
+                                thisEntry.value = NULL;
+                                thisEntry.valueLength = 0;
+                            }
+                            else {
+                                thisEntry.valueLength = strlen(argValue);
+                                thisEntry.value = (const char*)malloc((thisEntry.valueLength + 1) * sizeof(const char));
+                                if (!thisEntry.value) {
+                                    PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not save value of \"%s\n", &(arguments[i][2]));
+                                    return false;
+                                }
+                            }
+                        }
 
                         break;
                     }
                 }
             }
             // Short Option
-            else
-            {
-                for (uint32_t j = 0; j < argumentTypeIndex; j++)
-                {
-                    if (!argumentTypes[j].shortType)
+            else {
+                for (int64_t j = 0; j < argumentTypeSize; j++) {
+                    if (!argumentTypes[j].shortType)                // Current type doesn't support a short type
                         continue;
-                    if (strcmp(argumentTypes[j].shortType, &(arguments[i][1])) == 0)
-                    {
-                        found = true;
 
-                        ArgumentEntry* temp = (ArgumentEntry*)malloc(sizeof(ArgumentEntry));
-                        if (!temp)
-                        {
-                            return false;
-                        }
-                        memset(temp, 0, sizeof(ArgumentEntry));
-
-                        temp->nameLength = strlen(argumentTypes[j].longType) + 1;
-                        temp->name = (const char*)malloc(temp->nameLength * sizeof(char));
-                        if (!temp->name)
-                        {
-                            free(temp);
-                            temp = NULL;
-
-                            return false;
-                        }
-                        memset((void*)(temp->name), 0, temp->nameLength * sizeof(char));
-                        memcpy((char*)(temp->name), (const void*)(argumentTypes[j].longType), temp->nameLength - 1);
-
-                        temp->valueLength = -1;
-
-                        temp->position = argumentEntryIndex + 1;
-
-                        memcpy(&(argumentEntries[argumentEntryIndex++]), temp, sizeof(ArgumentEntry));
-
-                        free(temp);
-                        temp = NULL;
-
+                    if (strcmp(argumentTypes[j].shortType, &(arguments[i][1])) == 0) {
                         if (argumentTypes[j].isOnlyArgument)
                             onlyArgumentFound = true;
+
+                        thisEntry.name = argumentTypes[j].shortType;
+                        thisEntry.nameLength = strlen(argumentTypes[j].shortType);
+                        thisEntry.position = i;
+                        thisEntry.value = NULL;
+                        thisEntry.valueLength = 0;
 
                         break;
                     }
                 }
             }
 
-            if (!found)
-            {
-                if (!silent)
-                    fprintf(stderr, "Argument \"%s\" is not found\n", arguments[i]);
-
+            argumentEntrySize++;
+        }
+        // File detected
+        else if (NFileExists(arguments[i])) {
+            if (!ArgumentParserInsertFileEntry(arguments[i], i)) {
+                PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not insert file \"%s\" in the fileEntries array", arguments[i]);
                 return false;
             }
         }
-        // Files
-        else if (NFileExists(arguments[i]))
-        {
-            if (argumentFileEntryIndex + 1 > argumentFileEntryLength)
-            {
-                if (!DoubleFileEntriesLength())
-                    return false;
-            }
-
-            FileEntry* temp = (FileEntry*)malloc(sizeof(FileEntry));
-            if (!temp)
-            {
-                return false;
-            }
-            memset(temp, 0, sizeof(FileEntry));
-
-            temp->fnameLength = strlen(arguments[i]) + 1;
-            temp->fname = (const char*)malloc(temp->fnameLength * sizeof(const char));
-            if (!temp->fname)
-            {
-                free((void*)temp);
-                temp = NULL;
-
-                return false;
-            }
-            memset((void*)(temp->fname), 0, temp->fnameLength * sizeof(char));
-            memcpy((char*)(temp->fname), (const void*)(arguments[i]), temp->fnameLength - 1);
-
-            memcpy(&(fileEntries[argumentFileEntryIndex++]), temp, sizeof(FileEntry));
-
-            free((void*)temp);
-            temp = NULL;
-        }
-        // No argument type found or file
-        else
-        {
-            if (!silent)
-            {
-                fprintf(stderr, "Argument \"%s\" cannot be parsed\n", arguments[i]);
-            }
+        // Fail
+        else {
+            PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not parse \"%s\". Not an option nor a file", arguments[i]);
+            return false;
         }
     }
 
-    if (onlyArgumentFound && argumentEntryIndex != 1)
-    {
-        if (!silent)
-            fprintf(stderr, "Some arguments can only exist by themself. Please read documentation\n");
-
+    if (onlyArgumentFound && (argumentEntrySize != 1)) {
+        PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Some arguments can only exist by themself. Please read documentation\n");
         return false;
     }
 
     return true;
 }
 
-bool ContainsArgument(const char* argument)
+
+bool ArgumentParserContainsArgument(const char* argument)
 {
-    if (!isArgumentParserInitialized || !argumentEntries || !argument)
+    if (!isArgumentParserInitialized || !argumentEntries || argumentEntryCount == -1 || !argument)
         return false;
 
-    return GetEntryIndex(argument) != -1;
+    return ArgumentParserGetEntryIndex(argument) != -1;
 }
 
-uint32_t GetArgumentValueStringLength(const char* argument)
+int64_t ArgumentParserGetArgumentValueStringLength(const char* argument)
 {
-    if (!isArgumentParserInitialized || !argumentEntries || !argument)
+    if (!isArgumentParserInitialized || !argumentEntries || argumentEntryCount == -1 || !argument)
         return false;
 
-    int64_t index = GetEntryIndex(argument);
+    int64_t index = ArgumentParserGetEntryIndex(argument);
 
     if (index == -1)
-        return false;
+        return -1;
 
     return argumentEntries[index].valueLength;
 }
 
-bool GetArgumentValueString(const char* argument, char* output, uint32_t size)
+bool ArgumentParserGetArgumentValueString(const char* argument, char* output, uint32_t size)
 {
-    if (!isArgumentParserInitialized || !argumentEntries || !argument || !output || size == 0)
+    if (!isArgumentParserInitialized || !argumentEntries || argumentEntryCount == -1 || !argument || !output || size == 0)
         return false;
 
-    int64_t index = GetEntryIndex(argument);
+    int64_t index = ArgumentParserGetEntryIndex(argument);
 
     if (index == -1)
         return false;
@@ -488,12 +442,12 @@ bool GetArgumentValueString(const char* argument, char* output, uint32_t size)
     return true;
 }
 
-bool GetArgumentValueINT64(const char* argument, int64_t* output)
+bool ArgumentParserGetArgumentValueINT64(const char* argument, int64_t* output)
 {
-    if (!isArgumentParserInitialized || !argumentEntries || !argument || !output)
+    if (!isArgumentParserInitialized || !argumentEntries || argumentEntryCount == -1 || !argument || !output)
         return false;
 
-    int64_t index = GetEntryIndex(argument);
+    int64_t index = ArgumentParserGetEntryIndex(argument);
 
     if (index == -1)
         return false;
@@ -516,110 +470,40 @@ bool GetArgumentValueINT64(const char* argument, int64_t* output)
     return true;
 }
 
-uint32_t GetNumberOfFiles()
+int64_t ArgumentParserGetNumberOfFiles()
 {
-    if (!isArgumentParserInitialized || !fileEntries)
+    if (!isArgumentParserInitialized || !fileEntries || fileEntryCount == -1)
         return 0;
 
-    return argumentFileEntryIndex;
+    return fileEntrySize;
 }
 
-uint32_t GetFileNameLength(uint32_t position)
+int64_t ArgumentParserGetFileNameLength(int64_t position)
 {
-    if (!isArgumentParserInitialized || !fileEntries || position >= argumentFileEntryIndex)
-        return 0;
+    if (!isArgumentParserInitialized || !fileEntries || fileEntryCount == -1 || position < 0 || position >= fileEntryCount || !fileEntries[position].fname)
+        return -1;
 
-    return fileEntries[position].fnameLength;
+    return strlen(fileEntries[position].fname);
 }
 
-bool GetFileName(uint32_t position, char* output, uint32_t size)
+bool ArgumentParserGetFileName(int64_t position, char* output, int64_t size)
 {
-    if (!isArgumentParserInitialized || !fileEntries || position >= argumentFileEntryIndex || size < fileEntries[position].fnameLength)
+    if (!isArgumentParserInitialized || !fileEntries || fileEntryCount == -1 || position < 0 || position >= fileEntrySize || !fileEntries[position].fname || size < strlen(fileEntries[position].fname))
         return false;
 
-    memcpy(output, fileEntries[position].fname, fileEntries[position].fnameLength);
+    memcpy(output, fileEntries[position].fname, strlen(fileEntries[position].fname));
 
     return true;
 }
 
-void ClearParsedArguments()
-{
-    if (!isArgumentParserInitialized || !argumentEntries || !fileEntries)
-        return;
-
-    for (uint32_t i = 0; i < argumentEntryIndex; i++)
-    {
-        ArgumentEntry temp = argumentEntries[i];
-
-        if (temp.name)
-        {
-            free((void*)(temp.name));
-            temp.name = NULL;
-
-            temp.nameLength = -1;
-        }
-
-        if (temp.value)
-        {
-            free((void*)(temp.value));
-            temp.value = NULL;
-
-            temp.valueLength = -1;
-        }
-    }
-    free((void*)argumentEntries);
-    argumentEntries = NULL;
-
-    for (uint32_t i = 0; i < argumentFileEntryIndex; i++)
-    {
-        FileEntry temp = fileEntries[i];
-
-        if (temp.fname)
-        {
-            free((void*)(temp.fname));
-            temp.fname = NULL;
-
-            temp.fnameLength = -1;
-        }
-    }
-    free((void*)fileEntries);
-    fileEntries = NULL;
-
-    argumentEntryLength = 1;
-    argumentEntries = (ArgumentEntry*)malloc(argumentEntryLength * sizeof(ArgumentEntry));
-    if (!argumentEntries)
-    {
-        argumentEntryLength = -1;
-
-        return;
-    }
-    memset(argumentEntries, 0, argumentEntryLength * sizeof(ArgumentEntry));
-    argumentEntryIndex = 0;
-
-    argumentFileEntryLength = 1;
-    fileEntries = (FileEntry*)malloc(argumentFileEntryLength * sizeof(FileEntry));
-    if (!fileEntries)
-    {
-        free((void*)argumentEntries);
-        argumentEntries = NULL;
-        argumentEntryLength = -1;
-
-        argumentFileEntryLength = -1;
-
-        return;
-    }
-    memset(fileEntries, 0, argumentFileEntryLength * sizeof(FileEntry));
-    argumentFileEntryIndex = 0;
-}
-
-void CleanupArgumentParser()
+void ArgumentParserCleanup()
 {
     if (!isArgumentParserInitialized)
         return;
 
     if (argumentTypes)
     {
-        for (uint32_t i = 0; i < argumentTypeIndex; i++)
+        for (int64_t i = 0; i < argumentTypeSize; i++)
         {
             ArgumentType temp = argumentTypes[i];
 
@@ -641,7 +525,7 @@ void CleanupArgumentParser()
     }
     if (argumentEntries)
     {
-        for (uint32_t i = 0; i < argumentEntryIndex; i++)
+        for (int64_t i = 0; i < argumentEntrySize; i++)
         {
             ArgumentEntry temp = argumentEntries[i];
 
@@ -667,7 +551,7 @@ void CleanupArgumentParser()
     }
     if (fileEntries)
     {
-        for (uint32_t i = 0; i < argumentFileEntryIndex; i++)
+        for (int64_t i = 0; i < fileEntrySize; i++)
         {
             FileEntry temp = fileEntries[i];
 
@@ -675,8 +559,6 @@ void CleanupArgumentParser()
             {
                 free((void*)(temp.fname));
                 temp.fname = NULL;
-
-                temp.fnameLength = -1;
             }
         }
 
@@ -684,14 +566,14 @@ void CleanupArgumentParser()
         fileEntries = NULL;
     }
 
-    argumentTypeLength = -1;
-    argumentTypeIndex = 0;
+    argumentTypeCount = -1;
+    argumentTypeSize = 0;
 
-    argumentEntryLength = -1;
-    argumentEntryIndex = 0;
+    argumentEntryCount = -1;
+    argumentEntrySize = 0;
 
-    argumentFileEntryLength = -1;
-    argumentFileEntryIndex = 0;
+    fileEntryCount = -1;
+    fileEntrySize = 0;
 
     isArgumentParserInitialized = false;
 }
