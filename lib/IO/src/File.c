@@ -138,6 +138,7 @@ void NFileClose(NFILE file) {
 		return;
 
 	fclose(fs->fptr);
+	fs->open = false;
 }
 
 

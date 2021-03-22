@@ -17,33 +17,18 @@ int32_t exitCode = -1;
 
 int64_t* memorySize = NULL;
 
+NFILE fileOpen = NULL;
 
-int GetEndian()
-{
-    char fNumber[] = { 0x01, 0x02, 0x03, 0x04,
-                       0x05, 0x06, 0x07, 0x08 };
-    uint64_t sNumber = 0x0102030405060708;
-
-    if (*((uint64_t*)fNumber) == sNumber)
-        return BIG_ENDIAN_D;
-    else if (*((uint64_t*)fNumber) == ConvertEndianU64(sNumber))
-        return LITTLE_ENDIAN_D;
-    else
-        return VOODOO_ENDIAN_D;
-}
-
-void HandleInitialization(int argc, char** argv)
-{
+void HandleInitialization(int argc, char** argv) {
     initialized = false;
 
     NFileInitialize();
 
-    endian = GetEndian();
-    /*if (endian == VOODOO_ENDIAN_D)
-    {
+    endian = GetEndianness();
+    if (endian == VOODOO_ENDIAN_D) {
         fprintf(stderr, "An unrecognized endian was captured");
         return;
-    }*/
+    }
 
     notClearMemory = (bool*)malloc(sizeof(bool));
     if (!notClearMemory)
@@ -62,24 +47,25 @@ void HandleInitialization(int argc, char** argv)
     initialized = true;
 }
 
-void HandleCleanup()
-{
-    if (notClearMemory)
-    {
+void HandleCleanup() {
+    if (notClearMemory) {
         free(notClearMemory);
         notClearMemory = NULL;
     }
 
-    if (!printRegisters)
-    {
+    if (!printRegisters) {
         free(printRegisters);
         printRegisters = NULL;
     }
 
-    if (!memorySize)
-    {
+    if (!memorySize) {
         free(memorySize);
         memorySize = NULL;
+    }
+
+    if (fileOpen) {
+        NFileClose(fileOpen);
+        fileOpen = NULL;
     }
 
     NFileCleanUp();
@@ -87,15 +73,49 @@ void HandleCleanup()
     CleanArguments();
 }
 
-void ExitAMPLE()
-{
+void ExitAMPLE() {
     exit(exitCode);
 }
 
-int main(int argc, char** argv)
-{
-    if (argc == 1)
-    {
+bool HandleFile(char* fname) {
+    if (!fname || !NFileExists(fname))
+        return false;
+
+    fileOpen = NFileOpen(fname, NFILE_READ | NFILE_BINARY);
+    if (!fileOpen) {
+        fprintf(stderr, "Can not open file \"%s\"\n", fname);
+        return false;
+    }
+    uint64_t fileSize = NFileGetFileSize(fileOpen);
+    if (fileSize == -1) {
+        fprintf(stderr, "Can not read file \"%s\" properly\n", fname);
+        return false;
+    }
+    uint8_t* fileContent = (uint8_t*)malloc(fileSize * sizeof(uint8_t));
+    if (!fileContent) {
+        fprintf(stderr, "Can not allocate memory to read program \"%s\"\n", fname);
+        return false;
+    }
+    memset(fileContent, 0x00, fileSize * sizeof(uint8_t));
+    uint64_t bytesRead = NFileReadFile(fileOpen, fileContent, fileSize);
+    if (bytesRead != fileSize) {
+        fprintf(stderr, "Error reading file \"%s\"\n", fname);
+        free(fileContent);
+        return false;
+    }
+
+    printf("%s\n", fileContent);
+    free(fileContent);
+
+
+    NFileClose(fileOpen);
+    fileOpen = NULL;
+
+    return true;
+}
+
+int main(int argc, char** argv) {
+    if (argc == 1) {
         fprintf(stderr, "AMPLE-Runtime needs at least one argument");
         exitCode = -1;
         HandleCleanup();
@@ -106,8 +126,7 @@ int main(int argc, char** argv)
     argv++;
 
     HandleInitialization(argc, argv);
-    if (!initialized)
-    {
+    if (!initialized) {
         exitCode = -1;
         HandleCleanup();
         ExitAMPLE();
@@ -119,7 +138,11 @@ int main(int argc, char** argv)
         if (fnameSize == -1)
             break;
 
-        printf("%s\n", fname);
+        if (!HandleFile(fname)) {
+            exitCode = 1;
+            HandleCleanup();
+            ExitAMPLE();
+        }
     }
 
 

@@ -97,45 +97,57 @@
     #define INLINE inline __attribute__((always_inline))
 #elif ( !defined(INLINE) )
     #define INLINE inline
-#else
 #endif
 
 
 #define BIG_ENDIAN_D 0
 #define LITTLE_ENDIAN_D 1
-#define VOODOO_ENDIAN_D 1
+#define VOODOO_ENDIAN_D 2
 
-INLINE uint16_t ConvertEndianU16(uint16_t input)
-{
+
+INLINE uint16_t ConvertEndianU16(uint16_t input) {
     return (input << 8) | (input >> 8);
 }
-INLINE int16_t ConvertEndian16(int16_t input)
-{
+
+INLINE int16_t ConvertEndian16(int16_t input) {
     return (input << 8) | ((input >> 8) & 0xFF);
 }
 
-INLINE uint32_t ConvertEndianU32(uint32_t input)
-{
+
+INLINE uint32_t ConvertEndianU32(uint32_t input) {
     uint32_t intermediateVal = ((input << 8) & 0xFF00FF00) | ((input >> 8) & 0xFF00FF);
     return (intermediateVal << 16) | (intermediateVal >> 16);
 }
-INLINE int32_t ConvertEndian32(int32_t input)
-{
+
+INLINE int32_t ConvertEndian32(int32_t input) {
     int32_t intermediateVal = ((input << 8) & 0xFF00FF00) | ((input >> 8) & 0xFF00FF);
     return (intermediateVal << 16) | ((intermediateVal >> 16) & 0xFFFF);
 }
 
-INLINE uint64_t ConvertEndianU64(uint64_t input)
-{
+
+INLINE uint64_t ConvertEndianU64(uint64_t input) {
     uint64_t intermediateVal1 = ((input << 8) & 0xFF00FF00FF00FF00ULL) | ((input >> 8) & 0x00FF00FF00FF00FFULL);
     uint64_t intermediateVal2 = ((intermediateVal1 << 16) & 0xFFFF0000FFFF0000ULL) | ((intermediateVal1 >> 16) & 0x0000FFFF0000FFFFULL);
     return (intermediateVal2 << 32) | (intermediateVal2 >> 32);
 }
-INLINE int64_t ConvertEndian64(int64_t input)
-{
+
+INLINE int64_t ConvertEndian64(int64_t input) {
     int64_t intermediateVal1 = ((input << 8) & 0xFF00FF00FF00FF00ULL) | ((input >> 8) & 0x00FF00FF00FF00FFULL);
     int64_t intermediateVal2 = ((intermediateVal1 << 16) & 0xFFFF0000FFFF0000ULL) | ((intermediateVal1 >> 16) & 0x0000FFFF0000FFFFULL);
     return (intermediateVal2 << 32) | ((intermediateVal2 >> 32) & 0xFFFFFFFFULL);
+}
+
+INLINE uint8_t GetEndianness() {
+    char fNumber[] = { 0x01, 0x02, 0x03, 0x04,
+                       0x05, 0x06, 0x07, 0x08 };
+    uint64_t sNumber = 0x0102030405060708;
+
+    if (*((uint64_t*)fNumber) == sNumber)
+        return BIG_ENDIAN_D;
+    else if (*((uint64_t*)fNumber) == ConvertEndianU64(sNumber))
+        return LITTLE_ENDIAN_D;
+    else
+        return VOODOO_ENDIAN_D;
 }
 
 size_t GetEnvirontment(const char* name, char* destination);

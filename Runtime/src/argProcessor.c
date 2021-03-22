@@ -60,7 +60,7 @@ bool HandleArgs(int argNum, char** argPtr, int32_t* _exitCode, bool* notClearMem
         return false;
     }
 
-    if (!ArgumentParserAddArgumentTypes(&(argsTypes[0]), sizeof(argsTypes) / sizeof(argsTypes[0])))
+    if (!ArgumentParserAddArgumentTypes(argsTypes, sizeof(argsTypes) / sizeof(argsTypes[0])))
     {
         fprintf(stderr, "Error adding Argument Types to Argument parser\n");
         return false;

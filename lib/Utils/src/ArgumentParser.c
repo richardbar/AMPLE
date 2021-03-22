@@ -156,16 +156,16 @@ bool INLINE ArgumentParserInsertFileEntry(const char* fname, uint64_t position) 
             return false;
     }
 
-    FileEntry thisEntry = fileEntries[fileEntrySize];
+    FileEntry* thisEntry = &(fileEntries[fileEntrySize]);
 
     uint64_t fnameLength = strlen(fname);
 
-    thisEntry.fname = (const char*)malloc((fnameLength + 1) * sizeof(const char));
-    if (!thisEntry.fname)
+    thisEntry->fname = (const char*)malloc((fnameLength + 1) * sizeof(const char));
+    if (!thisEntry->fname)
         return false;
-    memcpy((char*)thisEntry.fname, fname, (fnameLength + 1) * sizeof(const char));
+    memcpy((char*)thisEntry->fname, fname, (fnameLength + 1) * sizeof(const char));
 
-    thisEntry.position = position;
+    thisEntry->position = position;
 
     fileEntrySize++;
 
@@ -189,7 +189,7 @@ bool ArgumentParserInitialize() {
     argumentEntryCount = 1;
     argumentEntries = (ArgumentEntry*)malloc(argumentEntryCount * sizeof(ArgumentEntry));
     if (!argumentEntries) {
-        free((void *) argumentTypes);
+        free((void*)argumentTypes);
         argumentTypes = NULL;
         argumentTypeCount = -1;
 
@@ -230,33 +230,33 @@ bool ArgumentParserAddArgumentType(ArgumentType* argType) {
             return false;
     }
 
-    ArgumentType thisType = argumentTypes[argumentTypeSize];
+    ArgumentType* thisType = &(argumentTypes[argumentTypeSize]);
 
     if (argType->longType) {
         uint64_t longTypeLength = strlen(argType->longType);
 
-        thisType.longType = (const char*) malloc((longTypeLength + 1) * sizeof(const char));
-        if (!thisType.longType)
+        thisType->longType = (const char*)malloc((longTypeLength + 1) * sizeof(const char));
+        if (!thisType->longType)
             return false;
-        memcpy((char*) thisType.longType, argType->longType, (longTypeLength + 1) * sizeof(const char));
+        memcpy((char*)thisType->longType, argType->longType, (longTypeLength + 1) * sizeof(const char));
     }
 
     if (argType->shortType) {
         uint64_t shortTypeLength = strlen(argType->shortType);
 
-        thisType.shortType = (const char*) malloc((shortTypeLength + 1) * sizeof(const char));
-        if (!thisType.shortType) {
-            if (thisType.longType) {
-                free((void *) thisType.longType);
-                thisType.longType = NULL;
+        thisType->shortType = (const char*)malloc((shortTypeLength + 1) * sizeof(const char));
+        if (!thisType->shortType) {
+            if (thisType->longType) {
+                free((void*)thisType->longType);
+                thisType->longType = NULL;
             }
             return false;
         }
-        memcpy((char*) thisType.shortType, argType->shortType, (shortTypeLength + 1) * sizeof(const char));
+        memcpy((char*)thisType->shortType, argType->shortType, (shortTypeLength + 1) * sizeof(const char));
     }
 
-    thisType.hasValue = argType->hasValue;
-    thisType.isOnlyArgument = argType->isOnlyArgument;
+    thisType->hasValue = argType->hasValue;
+    thisType->isOnlyArgument = argType->isOnlyArgument;
 
     argumentTypeSize++;
 
@@ -304,7 +304,7 @@ bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, 
                     return false;
                 }
             }
-            ArgumentEntry thisEntry = argumentEntries[argumentEntrySize];
+            ArgumentEntry* thisEntry = &(argumentEntries[argumentEntrySize]);
 
             // Long Option
             if (arguments[i][1] == '-') {
@@ -320,12 +320,12 @@ bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, 
                         if (argumentTypes[j].isOnlyArgument)
                             onlyArgumentFound = true;
 
-                        thisEntry.name = argumentTypes[j].longType;
-                        thisEntry.nameLength = strlen(argumentTypes[j].longType);
-                        thisEntry.position = i;
+                        thisEntry->name = argumentTypes[j].longType;
+                        thisEntry->nameLength = strlen(argumentTypes[j].longType);
+                        thisEntry->position = i;
                         if (!argumentTypes[j].hasValue) {
-                            thisEntry.value = NULL;
-                            thisEntry.valueLength = 0;
+                            thisEntry->value = NULL;
+                            thisEntry->valueLength = 0;
                         }
                         else {
                             bool hasValue = false;
@@ -337,20 +337,22 @@ bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, 
                                 else if (arguments[i][k] == '=') {
                                     hasValue = true;
                                     argValue = &(arguments[i][k + 1]);
+                                    break;
                                 }
                             }
 
                             if (!hasValue) {
-                                thisEntry.value = NULL;
-                                thisEntry.valueLength = 0;
+                                thisEntry->value = NULL;
+                                thisEntry->valueLength = 0;
                             }
                             else {
-                                thisEntry.valueLength = strlen(argValue);
-                                thisEntry.value = (const char*)malloc((thisEntry.valueLength + 1) * sizeof(const char));
-                                if (!thisEntry.value) {
+                                thisEntry->valueLength = strlen(argValue);
+                                thisEntry->value = (const char*)malloc((thisEntry->valueLength + 1) * sizeof(const char));
+                                if (!thisEntry->value) {
                                     PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Can not save value of \"%s\n", &(arguments[i][2]));
                                     return false;
                                 }
+                                memcpy((char*)thisEntry->value, argValue, (thisEntry->valueLength + 1) * sizeof(const char));
                             }
                         }
 
@@ -368,11 +370,11 @@ bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, 
                         if (argumentTypes[j].isOnlyArgument)
                             onlyArgumentFound = true;
 
-                        thisEntry.name = argumentTypes[j].shortType;
-                        thisEntry.nameLength = strlen(argumentTypes[j].shortType);
-                        thisEntry.position = i;
-                        thisEntry.value = NULL;
-                        thisEntry.valueLength = 0;
+                        thisEntry->name = argumentTypes[j].shortType;
+                        thisEntry->nameLength = strlen(argumentTypes[j].shortType);
+                        thisEntry->position = i;
+                        thisEntry->value = NULL;
+                        thisEntry->valueLength = 0;
 
                         break;
                     }
@@ -395,7 +397,7 @@ bool ArgumentParserParseArguments(char** arguments, uint64_t numberOfArguments, 
         }
     }
 
-    if (onlyArgumentFound && (argumentEntrySize != 1)) {
+    if (onlyArgumentFound && (numberOfArguments > 1)) {
         PRINT_IF_NOT_SILENT(stderr, "AMPLE Argument Parser: Some arguments can only exist by themself. Please read documentation\n");
         return false;
     }
@@ -527,22 +529,21 @@ void ArgumentParserCleanup()
     {
         for (int64_t i = 0; i < argumentEntrySize; i++)
         {
-            ArgumentEntry temp = argumentEntries[i];
+            ArgumentEntry* temp = &(argumentEntries[i]);
 
-            if (temp.name)
+            if (temp->name)
             {
-                free((void*)(temp.name));
-                temp.name = NULL;
-
-                temp.nameLength = -1;
+                // Already freed by argument types
+                temp->name = NULL;
+                temp->nameLength = -1;
             }
 
-            if (temp.value)
+            if (temp->value)
             {
-                free((void*)(temp.value));
-                temp.value = NULL;
+                free((void*)(temp->value));
+                temp->value = NULL;
 
-                temp.valueLength = -1;
+                temp->valueLength = -1;
             }
         }
 
@@ -553,12 +554,12 @@ void ArgumentParserCleanup()
     {
         for (int64_t i = 0; i < fileEntrySize; i++)
         {
-            FileEntry temp = fileEntries[i];
+            FileEntry* temp = &(fileEntries[i]);
 
-            if (temp.fname)
+            if (temp->fname)
             {
-                free((void*)(temp.fname));
-                temp.fname = NULL;
+                free((void*)(temp->fname));
+                temp->fname = NULL;
             }
         }
 
