@@ -1,152 +1,99 @@
-#include <stdint.h>
+#include "main.h"
+
+#include <AMPLE.h>
+
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "File.h"
+#include "ArgumentProcessor.h"
 
-#include "argProcessor.h"
+/**
+ * Allows the Clean up to make sure that it
+ * will not clean up everything twice
+ */
+static bool HasCleanUp = false;
+
+/**
+ * AMPLE Exit code. It starts as 1/Error and is set to 0/Success
+ * when AMPLE is supposed to exit gracefully.
+ */
+static int ExitCode = EXIT_FAILURE;
 
 
-uint8_t endian = VOODOO_ENDIAN_D;
-bool initialized = false;
-bool* notClearMemory = NULL;
-bool* printRegisters = NULL;
+bool AMPLEInitialize() {
+	/**
+	 * Makes sure to set the at exit function and outputs an
+	 * error message in case that it fails to be set up
+	 */
+	if (atexit(AMPLECleanUp)) {
+		fprintf(stderr, "Could not set up the at exit function\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
 
-int32_t exitCode = -1;
 
-int64_t* memorySize = NULL;
+	/**
+	 * Makes sure to set all the signals and outputs an error message
+	 * in case that one of those signals fails to be set up
+	 */
+	#pragma region SetSignals
+	if (signal(SIGABRT, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the abort signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	if (signal(SIGINT, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the interrupt signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	if (signal(SIGFPE, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the floating point error signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	if (signal(SIGILL, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the illegal opcode signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	if (signal(SIGSEGV, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the segmentation fault signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	if (signal(SIGTERM, AMPLESignalHandler) == SIG_ERR) {
+		fprintf(stderr, "Could not set the termination signal\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
+	#pragma endregion
 
-NFILE fileOpen = NULL;
 
-void HandleInitialization(int argc, char** argv) {
-    initialized = false;
+	/**
+	 * Make sure to initialize the ArgumentProcessor and output an error message
+	 * in case that the ArgumentProcessor does not initialize successfully
+	 */
+	if (!ArgumentProcessorInitialize()) {
+		fprintf(stderr, "Could not initialize the ArgumentProcessor\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
 
-    NFileInitialize();
 
-    endian = GetEndianness();
-    if (endian == VOODOO_ENDIAN_D) {
-        fprintf(stderr, "An unrecognized endian was captured");
-        return;
-    }
-
-    notClearMemory = (bool*)malloc(sizeof(bool));
-    if (!notClearMemory)
-        return;
-
-    printRegisters = (bool*)malloc(sizeof(bool));
-    if (!printRegisters)
-        return;
-
-    memorySize = (int64_t*)malloc(sizeof(int64_t));
-    if (!memorySize)
-        return;
-
-    HandleArgs(argc, argv, &exitCode, notClearMemory, printRegisters, memorySize);
-
-    initialized = true;
+	return true;
 }
 
-void HandleCleanup() {
-    if (notClearMemory) {
-        free(notClearMemory);
-        notClearMemory = NULL;
-    }
+void AMPLECleanUp(void) {
+	if (HasCleanUp)
+		return;
 
-    if (!printRegisters) {
-        free(printRegisters);
-        printRegisters = NULL;
-    }
+	ArgumentProcessorCleanUp();
 
-    if (!memorySize) {
-        free(memorySize);
-        memorySize = NULL;
-    }
-
-    if (fileOpen) {
-        NFileClose(fileOpen);
-        fileOpen = NULL;
-    }
-
-    NFileCleanUp();
-
-    CleanArguments();
+	HasCleanUp = true;
 }
 
-void ExitAMPLE() {
-    exit(exitCode);
+
+void AMPLESignalHandler(int sig) {
+	AMPLECleanUp();
 }
 
-bool HandleFile(char* fname) {
-    if (!fname || !NFileExists(fname))
-        return false;
-
-    fileOpen = NFileOpen(fname, NFILE_READ | NFILE_BINARY);
-    if (!fileOpen) {
-        fprintf(stderr, "Can not open file \"%s\"\n", fname);
-        return false;
-    }
-    uint64_t fileSize = NFileGetFileSize(fileOpen);
-    if (fileSize == -1) {
-        fprintf(stderr, "Can not read file \"%s\" properly\n", fname);
-        return false;
-    }
-    uint8_t* fileContent = (uint8_t*)malloc(fileSize * sizeof(uint8_t));
-    if (!fileContent) {
-        fprintf(stderr, "Can not allocate memory to read program \"%s\"\n", fname);
-        return false;
-    }
-    memset(fileContent, 0x00, fileSize * sizeof(uint8_t));
-    uint64_t bytesRead = NFileReadFile(fileOpen, fileContent, fileSize);
-    if (bytesRead != fileSize) {
-        fprintf(stderr, "Error reading file \"%s\"\n", fname);
-        free(fileContent);
-        return false;
-    }
-
-    printf("%s\n", fileContent);
-    free(fileContent);
-
-
-    NFileClose(fileOpen);
-    fileOpen = NULL;
-
-    return true;
-}
 
 int main(int argc, char** argv) {
-    if (argc == 1) {
-        fprintf(stderr, "AMPLE-Runtime needs at least one argument");
-        exitCode = -1;
-        HandleCleanup();
-        ExitAMPLE();
-    }
-
-    argc--;
-    argv++;
-
-    HandleInitialization(argc, argv);
-    if (!initialized) {
-        exitCode = -1;
-        HandleCleanup();
-        ExitAMPLE();
-    }
-
-    while (true) {
-        char* fname = NULL;
-        int32_t fnameSize = GetNextFile(&fname);
-        if (fnameSize == -1)
-            break;
-
-        if (!HandleFile(fname)) {
-            exitCode = 1;
-            HandleCleanup();
-            ExitAMPLE();
-        }
-    }
-
-
-    exitCode = 0;
-    HandleCleanup();
-    ExitAMPLE();
+	if (!AMPLEInitialize())
+		return ExitCode;
 }

@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #if  (  defined(_WIN32)    || \
         defined(__WIN32__) || \
@@ -97,6 +98,12 @@
     #define INLINE inline __attribute__((always_inline))
 #elif ( !defined(INLINE) )
     #define INLINE inline
+#endif
+
+#if   ( defined(__WINDOWS__) )
+	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#else
+	#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
 
