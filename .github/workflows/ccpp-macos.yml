@@ -11,9 +11,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: configure
         run: mkdir build && cd build && cmake ..
       - name: build
