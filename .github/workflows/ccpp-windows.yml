@@ -12,6 +12,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          submodules: true
       - uses: microsoft/setup-msbuild@v1
       - name: configure
         run: mkdir build && cd build && cmake ..

@@ -96,4 +96,25 @@ void AMPLESignalHandler(int sig) {
 int main(int argc, char** argv) {
 	if (!AMPLEInitialize())
 		return ExitCode;
+
+	/**
+	 * Process arguments and output the error code in case of an error occuring
+	 */
+	if (!ArgumentProcessorProcessArguments(argc - 1, ++argv)) {
+		int lastArgumentError = ArgumentProcessorGetLastErrorCode();
+		int messageLength = ArgumentProcessorCopyErrorCodeStr(lastArgumentError, NULL, 0);
+		char* message = (char*)malloc((messageLength + 1)* sizeof(char));
+		if (!message) {
+			fprintf(stderr, "Error allocating buffer\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+			return ExitCode;
+		}
+		ArgumentProcessorCopyErrorCodeStr(lastArgumentError, message, messageLength);
+		message[messageLength] = '\0';
+		fprintf(stderr, "%s", message);
+		free(message);
+		return ExitCode;
+	}
+
+	ExitCode = EXIT_SUCCESS;
+	return ExitCode;
 }

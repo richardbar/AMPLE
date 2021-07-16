@@ -33,7 +33,7 @@ int ArgumentProcessorGetLastErrorCode();
  * @param strSize Numbers of bytes to be copied to the string
  * @return The number of bytes copied, or the number of bytes needed for the error string to be copied if str is NULL, or -1 if the ArgumentProcessor is not initialized
  */
-int CopyErrorCodeStr(int errorCode, char* str, int strSize);
+int ArgumentProcessorCopyErrorCodeStr(int errorCode, char* str, int strSize);
 
 /**
  * Clean Up the Argument Processor

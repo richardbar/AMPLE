@@ -123,7 +123,7 @@ int ArgumentProcessorGetLastErrorCode() {
 	return ArgumentProcessorErrorCode;
 }
 
-int CopyErrorCodeStr(int errorCode, char* str, int strSize) {
+int ArgumentProcessorCopyErrorCodeStr(int errorCode, char* str, int strSize) {
 	/**
 	 * Check if NumberOfErrorStrings is initialized
 	 * Check if ArgumentProcessor is initialized
