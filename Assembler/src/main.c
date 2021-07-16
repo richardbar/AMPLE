@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "File.h"
+#include "NFile.h"
 
 #include "LineParser.h"
 

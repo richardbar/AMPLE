@@ -32,9 +32,5 @@ target_link_libraries(${PROJECT_NAME} AMPLE-Utils-Lib)
 
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 
-if (CMAKE_TOOLCHAIN_FILE)
-target_link_libraries(${PROJECT_NAME} CURL::libcurl)
-endif()
-
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

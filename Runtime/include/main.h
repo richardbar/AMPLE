@@ -40,3 +40,10 @@ void AMPLECleanUp(void);
  * Handle signals during execution
  */
 void AMPLESignalHandler(int sig);
+
+/**
+ * Loads program into memory
+ * @param fname File name to load
+ * @return true on success and false on failure
+ */
+bool AMPLELoadProgram(char* fname);
