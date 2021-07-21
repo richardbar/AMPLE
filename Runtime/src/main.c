@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "ArgumentProcessor.h"
+#include "Execute.h"
 
 
 /**
@@ -101,6 +102,10 @@ bool AMPLEInitialize() {
 	}
 
 
+	if (!ExecuteInitialize()) {
+		fprintf(stderr, "Could not initialize the Execution module\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
+		return false;
+	}
 	return true;
 }
 
@@ -113,6 +118,7 @@ void AMPLECleanUp(void) {
 	NFileCleanUp();
 
 	ArgumentProcessorCleanUp();
+	ExecuteCleanUp();
 
 	if (ProgramBytes) {
 		free(ProgramBytes);
@@ -128,7 +134,7 @@ void AMPLESignalHandler(int sig) {
 	/**
 	 * Output correct text depending on the signal handled
 	 */
-	const char* errorText = "";
+	const char* errorText;
 	switch (sig) {
 		case SIGABRT:
 			errorText = "AMPLE abruptly aborted";
@@ -152,7 +158,7 @@ void AMPLESignalHandler(int sig) {
 			errorText = "AMPLE unknown, compile time, signal";
 			break;
 	}
-	fprintf(stderr, "%s%c", errorText, (strcmp(errorText, "") == 0) ? '\0' : '\n');
+	fprintf(stderr, "%s\n", errorText);
 
 
 	/**
@@ -239,19 +245,18 @@ int main(int argc, char** argv) {
 		return ExitCode;
 
 	/**
-	 * Process arguments and output the error code in case of an error occuring
+	 * Process arguments and output the error code in case of an error occurring
 	 */
 	if (!ArgumentProcessorProcessArguments(argc - 1, &argv[1])) {
 		int lastArgumentError = ArgumentProcessorGetLastErrorCode();
 		int messageLength = ArgumentProcessorCopyErrorCodeStr(lastArgumentError, NULL, 0);
-		char* message = (char*)malloc((messageLength + 1)* sizeof(char));
+		char* message = (char*)malloc(messageLength * sizeof(char));
 		if (!message) {
 			fprintf(stderr, "Error allocating buffer\nRuntime/src/%s:%d\n", __FILENAME__, __LINE__);
 			return ExitCode;
 		}
 		ArgumentProcessorCopyErrorCodeStr(lastArgumentError, message, messageLength);
-		message[messageLength] = '\0';
-		fprintf(stderr, "%s", message);
+		fwrite(message, 1, messageLength, stdout);
 		free(message);
 		return ExitCode;
 	}
@@ -267,6 +272,7 @@ int main(int argc, char** argv) {
 		return ExitCode;
 	}
 
+	ExecuteExecute(ProgramBytes, ProgramSize, 0);
 
 	ExitCode = EXIT_SUCCESS;
 	return ExitCode;

@@ -20,7 +20,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CURL_INCLUDE_DIRS})
 
 
-file(GLOB SRC src/*.c src/*/*/*.c src/*/*/OP_CODES/*.c)
+file(GLOB SRC src/*.c src/*/*.c src/*/*/*.c)
 
 
 add_executable(${PROJECT_NAME} ${SRC})

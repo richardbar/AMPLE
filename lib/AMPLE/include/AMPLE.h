@@ -157,4 +157,51 @@ INLINE uint8_t GetEndianness() {
         return VOODOO_ENDIAN_D;
 }
 
+
+/**
+ * AMPLE_BIN_STRUCT is applied to the pointer of the first byte
+ * AMPLE_MAGIC must contain 0x41 0x4D 0x50 0x4C 0x45 0x53 0x55 0x00 or or the decimal 24016930118585664
+ * AMPLE_BIN_STRUCT_VERSION contains the struct version of the binary. The first two always contain the Magic number and version
+ * AMPLE_MIN_MEMORY contains the minimum number of bytes to reserve
+ * AMPLE_NUM_OF_TABLE_CONTENT
+ */
+typedef struct {
+		uint64_t AMPLE_MAGIC;
+		uint64_t AMPLE_BIN_STRUCT_VERSION;
+		uint64_t AMPLE_INITIAL_VERSION;
+		uint64_t AMPLE_MIN_MEMORY;
+		uint64_t AMPLE_NUM_OF_TABLE_CONTENT;
+		uint64_t AMPLE_TABLE_CONTENT;
+		uint64_t AMPLE_NUM_OF_INSTRUCTIONS;
+		uint64_t AMPLE_TABLE_OF_INSTRUCTIONS;
+} AMPLE_BIN;
+
+
+typedef struct {
+    uint64_t CONTENT_TYPE;
+    uint64_t CONTENT_MODE;
+    uint64_t CONTENT_VALUE_00;
+    uint64_t CONTENT_VALUE_01;
+    uint64_t CONTENT_VALUE_02;
+    uint64_t CONTENT_VALUE_03;
+    uint64_t CONTENT_VALUE_04;
+    uint64_t CONTENT_VALUE_05;
+    uint64_t CONTENT_VALUE_06;
+    uint64_t CONTENT_VALUE_07;
+    uint64_t CONTENT_VALUE_08;
+    uint64_t CONTENT_VALUE_09;
+    uint64_t CONTENT_VALUE_10;
+    uint64_t CONTENT_VALUE_11;
+    uint64_t CONTENT_VALUE_12;
+    uint64_t CONTENT_VALUE_13;
+} AMPLE_CONTENT;
+
+typedef struct {
+    uint32_t INSTRUCTION;
+    uint32_t MODE;
+    uint64_t ARG1;
+    uint64_t ARG2;
+    uint64_t ARG3;
+} AMPLE_INSTRUCTION;
+
 size_t GetEnvirontment(const char* name, char* destination);

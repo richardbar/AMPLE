@@ -21,7 +21,7 @@ int main(int argc, char** argv);
  * Main entry point of AMPLE in an environment without an OS
  * @return The exit code
  */
-int AMPLE();
+void AMPLE();
 
 #endif
 
